@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>編集</h2>
+
+<form method="post" action="/update/{{ data.id }}" class="card p-3">
+
+    <input type="date" name="date" value="{{ data.date }}" class="form-control mb-2">
+
+    <input name="period" value="{{ data.period }}" class="form-control mb-2">
+    <input name="time" value="{{ data.time }}" class="form-control mb-2">
+    <input name="teacher" value="{{ data.teacher }}" class="form-control mb-2">
+
+    <select name="substitute" class="form-control mb-2">
+        <option value="1" {% if data.substitute %}selected{% endif %}>あり</option>
+        <option value="0" {% if not data.substitute %}selected{% endif %}>なし</option>
+    </select>
+
+    <input name="status" value="{{ data.status }}" class="form-control mb-2">
+    <input name="note" value="{{ data.note }}" class="form-control mb-2">
+
+    <button class="btn btn-success">更新</button>
+
+</form>
+
+{% endblock %}

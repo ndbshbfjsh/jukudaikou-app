@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center mb-4">代講管理</h2>
+
+<a href="/today" class="btn btn-outline-danger btn-sm mb-2">今日だけ</a>
+<a href="/export" class="btn btn-success btn-sm mb-2">Excel出力</a>
+
+<div class="mb-3 text-center">
+    <a href="/?sort=date" class="btn btn-outline-primary btn-sm">日付順</a>
+    <a href="/?sort=teacher" class="btn btn-outline-primary btn-sm">先生順</a>
+    <a href="/?sort=status" class="btn btn-outline-primary btn-sm">状態順</a>
+</div>
+
+<form method="post" action="/add" class="card p-3 mb-4">
+<div class="row g-2">
+
+<div class="col-12">
+<input type="date" name="date" required class="form-control">
+</div>
+
+<div class="col-6">
+<select name="period" class="form-select">
+<option value="1">1限</option>
+<option value="2">2限</option>
+<option value="3">3限</option>
+<option value="4">4限</option>
+<option value="5">5限</option>
+<option value="6">6限</option>
+<option value="7">7限</option>
+</select>
+</div>
+
+<div class="col-6">
+<input name="time" placeholder="時間" class="form-control">
+</div>
+
+<div class="col-12">
+<input name="teacher" placeholder="先生名" required class="form-control">
+</div>
+
+<div class="col-6">
+<select name="status" class="form-select" onchange="toggleSubTeacher(this)">
+<option value="未定">未定</option>
+<option value="決定">決定</option>
+</select>
+</div>
+
+<div class="col-6" id="subTeacherField" style="display:none;">
+<input name="sub_teacher" placeholder="代講先生名" class="form-control">
+</div>
+
+<div class="col-12">
+<input name="note" placeholder="備考" class="form-control">
+</div>
+
+<div class="col-12">
+<button class="btn btn-primary w-100">追加</button>
+</div>
+
+</div>
+</form>
+
+{% for group in grouped.values() %}
+{% for d in group %}
+<div class="card shadow-sm mb-3">
+<div class="card-body">
+
+<h5>{{ d.date }} / {{ d.period }}限</h5>
+<p>先生: {{ d.teacher }}</p>
+
+{% if d.status == "決定" and d.sub_teacher %}
+<p class="text-danger fw-bold">
+代講：{{ d.sub_teacher }}
+</p>
+{% endif %}
+
+<span class="badge bg-info">{{ d.status }}</span>
+<p class="text-muted">{{ d.note }}</p>
+
+<a href="/edit/{{ d.id }}" class="btn btn-sm btn-secondary">編集</a>
+<a href="/delete/{{ d.id }}" class="btn btn-sm btn-danger">削除</a>
+
+</div>
+</div>
+{% endfor %}
+{% endfor %}
+
+<script>
+function toggleSubTeacher(select){
+    const field = document.getElementById("subTeacherField");
+    field.style.display = select.value === "決定" ? "block" : "none";
+}
+</script>
+
+{% endblock %}
