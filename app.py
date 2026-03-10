@@ -5,6 +5,7 @@ from datetime import datetime
 from openpyxl import Workbook
 from datetime import datetime, timedelta
 import os
+import io
 
 app = Flask(__name__)
 app.secret_key= "anything-secret"
@@ -37,7 +38,7 @@ with app.app_context():
 def toggle_today():
     session["today_only"] = not session.get("today_only", False)
     return redirect("/")
-    
+
 @app.route("/")
 def index():
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
