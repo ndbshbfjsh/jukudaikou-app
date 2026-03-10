@@ -13,6 +13,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+with app.app_context():
+    db.create_all()
+class Data(db.Mode1):
 
 
 class Data(db.Model):
@@ -144,7 +147,3 @@ def export():
     )
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
