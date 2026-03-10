@@ -130,7 +130,7 @@ def update(id):
 
         db.session.add(data)
 
-db.session.commit()
+    db.session.commit()
     return redirect("/")
 
 
