@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-
+<div class="mb-3">
+  <a href="/toggle_today" class="btn btn-primary">
+    {% if session.get("today_only") %}
+      全表示に戻す
+    {% else %}
+      今日だけ表示
+    {% endif %}
+  </a>
+</div>
 <h2 class="text-center mb-4">代講管理</h2>
 
 <a href="/today" class="btn btn-outline-danger btn-sm mb-2">今日だけ</a>

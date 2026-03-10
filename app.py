@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, redirect, send_file session
 from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
 from datetime import datetime
@@ -6,6 +6,7 @@ from openpyxl import Workbook
 import os
 
 app = Flask(__name__)
+app.secret_key= "anything-secret"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
     "DATABASE_URL",
     "sqlite:///database.db"
@@ -31,16 +32,27 @@ with app.app_context():
 
     
 # ---------------- 一覧 ----------------
+@app.route("/toggle_today")
+def toggle_today():
+    session["today_only"] = not session.get("today_only", False)
+    return redirect("/")
 @app.route("/")
 def index():
     sort = request.args.get("sort")
 
     if sort == "teacher":
         records = Data.query.order_by(Data.teacher).all()
+
     elif sort == "status":
         records = Data.query.order_by(Data.status).all()
+
     else:
-        records = Data.query.order_by(Data.date, Data.period).all()
+        if session.get("today_only"):
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            records = Data.query.filter_by(date=today_str)\
+                .order_by(Data.date, Data.period).all()
+        else:
+            records = Data.query.order_by(Data.date, Data.period).all()
 
     grouped = defaultdict(list)
 
@@ -52,17 +64,7 @@ def index():
 
 
 # ---------------- 今日だけ ----------------
-@app.route("/today")
-def today():
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    records = Data.query.filter_by(date=today_str).order_by(Data.period).all()
 
-    grouped = defaultdict(list)
-    for r in records:
-        key = f"{r.date}_{r.period}"
-        grouped[key].append(r)
-
-    return render_template("index.html", grouped=grouped)
 
 
 # ---------------- 追加 ----------------
