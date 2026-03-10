@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
 from datetime import datetime
 from openpyxl import Workbook
+from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
@@ -38,29 +39,41 @@ def toggle_today():
     return redirect("/")
 @app.route("/")
 def index():
+    limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
+    Data.query.filter(Data.date <limit_date).delete()
+    db.session.commit()
+
     sort = request.args.get("sort")
+teacher_search = request.args.get("teacher")
+status_filter=request.args.get("status")
+query = Data.query
+if status_filter == "mitei":
+    query = query.filter(Data.status == "未定")
 
-    if sort == "teacher":
-        records = Data.query.order_by(Data.teacher).all()
+if teacher_search:
+    query = query.filter(Data.teacher.contains(teacher_search))
 
-    elif sort == "status":
-        records = Data.query.order_by(Data.status).all()
+if sort == "teacher":
+    records = query.order_by(Data.teacher, Data.date, Data.period).all()
 
+elif sort == "status":
+    records = query.order_by(Data.status.desc(), Data.date, Data.period).all()
+
+else:
+    if session.get("today_only"):
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        records = query.filter_by(date=today_str)\
+            .order_by(Data.date, Data.period).all()
     else:
-        if session.get("today_only"):
-            today_str = datetime.now().strftime("%Y-%m-%d")
-            records = Data.query.filter_by(date=today_str)\
-                .order_by(Data.date, Data.period).all()
-        else:
-            records = Data.query.order_by(Data.date, Data.period).all()
+        records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
 
     grouped = defaultdict(list)
 
-    for r in records:
-        key = f"{r.date}_{r.period}"
-        grouped[key].append(r)
+for r in records:
+    key = r.date
+    grouped[key].append(r)
 
-    return render_template("index.html", grouped=grouped)
+return render_template("index.html", grouped=grouped)
 
 
 # ---------------- 今日だけ ----------------
@@ -73,7 +86,7 @@ def add():
     new = Data(
     branch=request.form["branch"],   # ←これ追加
     date=request.form["date"],
-    period=request.form["period"],
+    periods = request.form.getlist("period")
     time=request.form["time"],
     teacher=request.form["teacher"],
     status=request.form["status"],
@@ -95,17 +108,25 @@ def edit(id):
 # ---------------- 更新 ----------------
 @app.route("/update/<int:id>", methods=["POST"])
 def update(id):
-    data = Data.query.get(id)
+    periods=request.form.getlist("period")
+    old=Data.query.get(id)
+    db.session.delete(old)
+    for p in periods:
 
-    data.date = request.form["date"]
-    data.period = request.form["period"]
-    data.time = request.form["time"]
-    data.teacher = request.form["teacher"]
-    data.status = request.form["status"]
-    data.sub_teacher = request.form.get("sub_teacher")
-    data.note = request.form["note"]
+    data = Data(
+        branch=branch,
+        date=date,
+        period=p,
+        time=time,
+        teacher=teacher,
+        status=status,
+        sub_teacher=sub_teacher,
+        note=note
+    )
 
-    db.session.commit()
+    db.session.add(data)
+
+db.session.commit()
     return redirect("/")
 
 
@@ -121,6 +142,8 @@ def delete(id):
 # ---------------- Excel ----------------
 @app.route("/export")
 def export():
+    from openpyx1.styles import Alignment, Font
+    from openpyx1.utils import get_column_letter
     records = Data.query.order_by(Data.date, Data.period).all()
 
     wb = Workbook()
@@ -137,6 +160,18 @@ def export():
             r.sub_teacher,
             r.note
         ])
+        for col in ws.columns:
+            max_length = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length,len(str(cell.value)))
+            ws.column_dimension[col_letter].width = max_length + 4
+        for cell in ws[1]:
+            cell.font = Font(bold=True)
+        for row in ws.iter_rows():
+            for cell in row:
+                cell.alignment = Alignment(horizontal="center")
 
     file_stream = io.BytesIO()
     wb.save(file_stream)

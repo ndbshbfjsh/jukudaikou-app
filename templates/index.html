@@ -170,6 +170,7 @@ body{
   <a href="/?sort=date" class="btn btn-outline-primary btn-sm">日付順</a>
   <a href="/?sort=teacher" class="btn btn-outline-primary btn-sm">先生順</a>
   <a href="/?sort=status" class="btn btn-outline-primary btn-sm">状態順</a>
+  <a href="/?status=mitei" class="btn btn-warning btn=sm">未定だけ</a>
 </div>
 
 <form method="post" action="/add" class="card form-card p-3 p-md-4 mb-4">
@@ -190,15 +191,17 @@ body{
 
     <div class="col-md-6">
       <div class="section-label">時限</div>
-      <select name="period" class="form-select">
-        <option value="1">1限</option>
-        <option value="2">2限</option>
-        <option value="3">3限</option>
-        <option value="4">4限</option>
-        <option value="5">5限</option>
-        <option value="6">6限</option>
-        <option value="7">7限</option>
-      </select>
+      <select name="period" class="form-select" multiple>
+
+      <option value="1">1限</option>
+      <option value="2">2限</option>
+      <option value="3">3限</option>
+      <option value="4">4限</option>
+      <option value="5">5限</option>
+      <option value="6">6限</option>
+      <option value="7">7限</option>
+
+</select>
     </div>
 
     <div class="col-md-6">
