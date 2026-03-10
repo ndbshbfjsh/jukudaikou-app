@@ -37,6 +37,7 @@ with app.app_context():
 def toggle_today():
     session["today_only"] = not session.get("today_only", False)
     return redirect("/")
+    
 @app.route("/")
 def index():
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
@@ -44,9 +45,9 @@ def index():
     db.session.commit()
 
     sort = request.args.get("sort")
-teacher_search = request.args.get("teacher")
-status_filter=request.args.get("status")
-query = Data.query
+    teacher_search = request.args.get("teacher")
+    status_filter=request.args.get("status")
+    query = Data.query
 if status_filter == "mitei":
     query = query.filter(Data.status == "未定")
 
