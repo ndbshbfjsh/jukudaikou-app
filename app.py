@@ -83,17 +83,23 @@ return render_template("index.html", grouped=grouped)
 # ---------------- 追加 ----------------
 @app.route("/add", methods=["POST"])
 def add():
-    new = Data(
-    branch=request.form["branch"],   # ←これ追加
-    date=request.form["date"],
+
     periods = request.form.getlist("period")
-    time=request.form["time"],
-    teacher=request.form["teacher"],
-    status=request.form["status"],
-    sub_teacher=request.form.get("sub_teacher"),
-    note=request.form["note"]
-)
-    db.session.add(new)
+
+    for p in periods:
+        new = Data(
+            branch=request.form["branch"],
+            date=request.form["date"],
+            period=p,
+            time=request.form["time"],
+            teacher=request.form["teacher"],
+            status=request.form["status"],
+            sub_teacher=request.form.get("sub_teacher"),
+            note=request.form["note"]
+        )
+
+        db.session.add(new)
+
     db.session.commit()
     return redirect("/")
 
