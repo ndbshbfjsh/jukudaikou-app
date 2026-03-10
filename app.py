@@ -83,7 +83,6 @@ return render_template("index.html", grouped=grouped)
 # ---------------- 追加 ----------------
 @app.route("/add", methods=["POST"])
 def add():
-
     periods = request.form.getlist("period")
 
     for p in periods:
