@@ -3,10 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
 from datetime import datetime
 from openpyxl import Workbook
-import io
+import os
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -14,6 +14,7 @@ db = SQLAlchemy(app)
 
 class Data(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    branch = db.Column(db.String(100))  # ←追加
     date = db.Column(db.String(20))
     period = db.Column(db.String(10))
     time = db.Column(db.String(20))
@@ -21,7 +22,6 @@ class Data(db.Model):
     status = db.Column(db.String(20))
     sub_teacher = db.Column(db.String(100))
     note = db.Column(db.String(200))
-
 
 # ---------------- 一覧 ----------------
 @app.route("/")
@@ -62,14 +62,15 @@ def today():
 @app.route("/add", methods=["POST"])
 def add():
     new = Data(
-        date=request.form["date"],
-        period=request.form["period"],
-        time=request.form["time"],
-        teacher=request.form["teacher"],
-        status=request.form["status"],
-        sub_teacher=request.form.get("sub_teacher"),
-        note=request.form["note"]
-    )
+    branch=request.form["branch"],   # ←これ追加
+    date=request.form["date"],
+    period=request.form["period"],
+    time=request.form["time"],
+    teacher=request.form["teacher"],
+    status=request.form["status"],
+    sub_teacher=request.form.get("sub_teacher"),
+    note=request.form["note"]
+)
     db.session.add(new)
     db.session.commit()
     return redirect("/")
@@ -85,15 +86,15 @@ def edit(id):
 # ---------------- 更新 ----------------
 @app.route("/update/<int:id>", methods=["POST"])
 def update(id):
-    target = Data.query.get(id)
+    data = Data.query.get(id)
 
-    target.date = request.form["date"]
-    target.period = request.form["period"]
-    target.time = request.form["time"]
-    target.teacher = request.form["teacher"]
-    target.status = request.form["status"]
-    target.sub_teacher = request.form.get("sub_teacher")
-    target.note = request.form["note"]
+    data.date = request.form["date"]
+    data.period = request.form["period"]
+    data.time = request.form["time"]
+    data.teacher = request.form["teacher"]
+    data.status = request.form["status"]
+    data.sub_teacher = request.form.get("sub_teacher")
+    data.note = request.form["note"]
 
     db.session.commit()
     return redirect("/")

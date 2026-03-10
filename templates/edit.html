@@ -11,16 +11,29 @@
     <input name="time" value="{{ data.time }}" class="form-control mb-2">
     <input name="teacher" value="{{ data.teacher }}" class="form-control mb-2">
 
-    <select name="substitute" class="form-control mb-2">
-        <option value="1" {% if data.substitute %}selected{% endif %}>あり</option>
-        <option value="0" {% if not data.substitute %}selected{% endif %}>なし</option>
-    </select>
+    
 
-    <input name="status" value="{{ data.status }}" class="form-control mb-2">
+    <select name="status" class="form-control mb-2" onchange="toggleSubTeacher(this)">
+    <option value="未定" {% if data.status == "未定" %}selected{% endif %}>未定</option>
+    <option value="決定" {% if data.status == "決定" %}selected{% endif %}>決定</option>
+</select>
+<div id="subTeacherField"
+     style="{% if data.status != '決定' %}display:none;{% endif %}">
+    <input name="sub_teacher"
+           value="{{ data.sub_teacher }}"
+           placeholder="代講先生名"
+           class="form-control mb-2">
+</div>
     <input name="note" value="{{ data.note }}" class="form-control mb-2">
 
     <button class="btn btn-success">更新</button>
 
 </form>
+<script>
+function toggleSubTeacher(select){
+    const field = document.getElementById("subTeacherField");
+    field.style.display = select.value === "決定" ? "block" : "none";
+}
+</script>
 
 {% endblock %}
