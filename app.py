@@ -96,8 +96,7 @@ def add():
             sub_teacher=request.form.get("sub_teacher"),
             note=request.form["note"]
         )
-
-        db.session.add(new)
+            db.session.add(new)
 
     db.session.commit()
     return redirect("/")
