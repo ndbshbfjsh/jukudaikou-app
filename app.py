@@ -49,33 +49,33 @@ def index():
     teacher_search = request.args.get("teacher")
     status_filter=request.args.get("status")
     query = Data.query
-if status_filter == "mitei":
+    if status_filter == "mitei":
     query = query.filter(Data.status == "未定")
 
-if teacher_search:
+    if teacher_search:
     query = query.filter(Data.teacher.contains(teacher_search))
 
-if sort == "teacher":
+    if sort == "teacher":
     records = query.order_by(Data.teacher, Data.date, Data.period).all()
 
-elif sort == "status":
+    elif sort == "status":
     records = query.order_by(Data.status.desc(), Data.date, Data.period).all()
 
-else:
-    if session.get("today_only"):
+    else:
+        if session.get("today_only"):
         today_str = datetime.now().strftime("%Y-%m-%d")
         records = query.filter_by(date=today_str)\
             .order_by(Data.date, Data.period).all()
-    else:
+        else:
         records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
 
-    grouped = defaultdict(list)
+        grouped = defaultdict(list)
 
-for r in records:
+    for r in records:
     key = r.date
     grouped[key].append(r)
 
-return render_template("index.html", grouped=grouped)
+    return render_template("index.html", grouped=grouped)
 
 
 # ---------------- 今日だけ ----------------
