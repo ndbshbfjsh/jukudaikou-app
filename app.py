@@ -117,7 +117,7 @@ def update(id):
     db.session.delete(old)
     for p in periods:
 
-    data = Data(
+        data = Data(
         branch=branch,
         date=date,
         period=p,
@@ -128,7 +128,7 @@ def update(id):
         note=note
     )
 
-    db.session.add(data)
+        db.session.add(data)
 
 db.session.commit()
     return redirect("/")
