@@ -41,6 +41,8 @@ def toggle_today():
 
 @app.route("/")
 def index():
+    db.create_all()
+    
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
     Data.query.filter(Data.date <limit_date).delete()
     db.session.commit()
