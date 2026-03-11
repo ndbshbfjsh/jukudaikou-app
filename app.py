@@ -44,7 +44,7 @@ def index():
     db.create_all()
 
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
-    Data.query.filter(Data.date <limit_date).delete()
+    Data.query.filter(Data.date <= limit_date).delete(synchronize_session=False)
     db.session.commit()
 
     sort = request.args.get("sort")
