@@ -69,9 +69,9 @@ def index():
             records = query.filter(Data.date == today)\
                 .order_by(Data.date, Data.period).all()
         else:
-            records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
+             records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
 
-            grouped = defaultdict(list)
+    grouped = defaultdict(list)
 
     for r in records:
         key = r.date
