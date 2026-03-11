@@ -42,7 +42,7 @@ def toggle_today():
 @app.route("/")
 def index():
     db.create_all()
-    
+
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
     Data.query.filter(Data.date <limit_date).delete()
     db.session.commit()
@@ -65,9 +65,9 @@ def index():
 
     else:
         if session.get("today_only"):
-            today_str = datetime.now().strftime("%Y-%m-%d")
-            records = query.filter_by(date=today_str)\
-            .order_by(Data.date, Data.period).all()
+            today = datetime.now().strftime("%Y-%m-%d")
+            records = query.filter(Data.date == today)\
+                .order_by(Data.date, Data.period).all()
         else:
             records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
 
