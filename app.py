@@ -18,7 +18,8 @@ if db_url and db_url.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///instance/database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_pre_ping": True
+    "pool_pre_ping": True,
+    "pool_recycle": 280
 }
 
 db = SQLAlchemy(app)
