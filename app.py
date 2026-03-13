@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key= "anything-secret"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
     "DATABASE_URL",
-    "sqlite:///database.db"
+    "sqlite:///instance/database.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
