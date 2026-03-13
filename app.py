@@ -93,7 +93,7 @@ def index():
 
 @app.route("/day/<date>")
 def day(date):
-    records - Data.query.filter_by(date=date).order_by(Data.period).all()
+    records = Data.query.filter_by(date=date).order_by(Data.period).all()
     return render_template("day.html", records=records, date=date)
 
 @app.route("/edit")
