@@ -5,22 +5,22 @@
 
 <form method="post" action="/add" class="card p-3">
 
-    <input type="date" name="date" value="{{ data.date }}" class="form-control mb-2">
+    <input type="date" name="date" value="{{ date }}" class="form-control mb-2">
 
-    <input name="period" value="{{ data.period }}" class="form-control mb-2">
-    <input name="time" value="{{ data.time }}" class="form-control mb-2">
-    <input name="teacher" value="{{ data.teacher }}" class="form-control mb-2">
+    <input name="period" value="period" class="form-control mb-2">
+    <input name="time" value="time" class="form-control mb-2">
+    <input name="teacher" value="teacher" class="form-control mb-2">
 
     
 
     <select name="status" class="form-control mb-2" onchange="toggleSubTeacher(this)">
-    <option value="未定" {% if data.status == "未定" %}selected{% endif %}>未定</option>
-    <option value="決定" {% if data.status == "決定" %}selected{% endif %}>決定</option>
+    <option value="未定" >未定</option>
+    <option value="決定" >決定</option>
 </select>
 <div id="subTeacherField"
-     style="{% if data.status != '決定' %}display:none;{% endif %}">
+     style="display:none;>
     <input name="sub_teacher"
-           value="{{ data.sub_teacher }}"
+           value=""
            placeholder="代講先生名"
            class="form-control mb-2">
 </div>
