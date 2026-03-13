@@ -87,7 +87,7 @@ def index():
     today = datetime.today()
     year = today.year
     month = today.month
-    cal = caleedar.monthcalendar(year, month)
+    cal = calendar.monthcalendar(year, month)
 
     return render_template("index.html", grouped=grouped, calendar_data=cal, year=year, month=month)
 
