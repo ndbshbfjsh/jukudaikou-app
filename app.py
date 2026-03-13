@@ -6,6 +6,7 @@ from openpyxl import Workbook
 from datetime import datetime, timedelta
 import os
 import io
+import calendar
 
 app = Flask(__name__)
 app.secret_key = "anything-secret"
@@ -83,10 +84,22 @@ def index():
     for r in records:
         key = r.date
         grouped[key].append(r)
+    today = datetime.today()
+    year = today.year
+    month = today.month
+    cal = caleedar.monthcalendar(year, month)
 
-    return render_template("index.html", grouped=grouped)
+    return render_template("index.html", grouped=grouped, calendar_data=cal, year=year, month=month)
 
+@app.route("/day/<date>")
+def day(date):
+    records - Data.query.filter_by(date=date).order_by(Data.period).all()
+    return render_template("day.html", records=records, date=date)
 
+@app.route("/edit")
+def edit_page():
+    date = request.args.get("date", "")
+    return render_template("edit.html", date=date)
 # ---------------- 今日だけ ----------------
 
 

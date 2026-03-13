@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-4">
+        <h2 class="text-center mb-4">📌 {{ date }} の代講一覧</h2>
+
+        <div class="mb-3 text-center">
+            <a href="/edit?date={{date}}" clas="btn btn-primary">+ この日で追加</a>
+            <a href="/" class="btn btn-secondary">← トップに戻る</a>
+        </div>
+
+        {% if records %}
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>時限</th>
+                    <th>時間</th>
+                    <th>先生名</th>
+                    <th>状態</th>
+                    <th>備考</th>
+                    <th>編集</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in records %}
+                <tr>
+                    <td>{{ d.period }}</td>
+                    <td>{{ d.time }}</td>
+                    <td>{{ d.teather }}</td>
+                    <td>{{ d.status }}</td>
+                    <td>{{ d.note }}</td>
+                    <td>
+                        <a href="/edit/{{ d.id }}" class="btn btn-sm btn-warning">編集</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center">この日の代講はまだありません。</p>
+        {% endif %}
+</div>
+
+{% endblock %}

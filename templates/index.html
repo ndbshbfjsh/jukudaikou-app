@@ -165,6 +165,37 @@ body{
 </div>
 
 <h2 class="text-center mb-4 page-title">代講管理</h2>
+<h2 class="text-center mb-4">📅{{year}}年{{month}}月 カレンダー</h2>
+
+<table class="table table-bordered text-center align-middle mb-4">
+    <thead>
+          <tr>
+            <th>月</th>
+            <th>火</th>
+            <th>水</th>
+            <th>木</th>
+            <th>金</th>
+            <th>土</th>
+            <th>日</th>
+          </tr>
+    </thead>
+    <tbody>
+          {% for week in calendar_data %}
+          <tr>
+              {% for day in week %}
+              <td style="height:80px; vertical-align:top;">
+                    {% if day !=0 %}
+                          {% set date_str = "%04d-%02d-%02d"|format(year, month ,day) %}
+                          <a href="/day/{{date_str }}" style="text-decoration:none; font-weight:bold;">
+                                {{day}}
+                          </a>
+                    {% endif %}
+              </td>
+              {% endfor %}
+          </tr>
+          {% endfor %}
+    </tbody>
+  </table>
 
 <div class="top-toolbar mb-4">
   <a href="/?sort=date" class="btn btn-outline-primary btn-sm">日付順</a>
@@ -184,7 +215,7 @@ body{
 
     <div class="col-12">
       <div class="section-label">日付</div>
-      <input type="date" name="date" required class="form-control">
+      <input type="date" name="date" required class="form-control" value="{{ date }}">
     </div>
 
     <div class="col-md-6">
