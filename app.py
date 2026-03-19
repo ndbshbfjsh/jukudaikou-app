@@ -124,12 +124,12 @@ def edit_page():
             record =Data.query.filter_by(date=date, period=p).first()
 
             if record:
-            record.time = time
-            record.teacher = teacher
-            record.status = status
-            record.note = note
+                record.time = time
+                record.teacher = teacher
+                record.status = status
+                record.note = note
             else:
-            record = Data(date=date, period=p, time=time, teacher=teacher, status=status, note=note )
+                record = Data(date=date, period=p, time=time, teacher=teacher, status=status, note=note )
             db.session.add(record)
     
         db.session.commit()
