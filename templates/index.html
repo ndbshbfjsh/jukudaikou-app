@@ -167,8 +167,8 @@ body{
 <h2 class="text-center mb-4 page-title">代講管理</h2>
 <h2 class="text-center mb-4">📅{{year}}年{{month}}月 カレンダー</h2>
 <div class="mb-3 text-center">
-    <a herf="/?year={{ year }}&month={{ month-1 }}" class="btn btn-primary">←前月</a>
-    <a herf="/?year={{ year }}&month={{ month+1 }}" class="btn btn-primary">次月→</a>
+    <a href="/?year={{ year }}&month={{ month-1 }}" class="btn btn-primary">←前月</a>
+    <a href="/?year={{ year }}&month={{ month+1 }}" class="btn btn-primary">次月→</a>
 </div>
 <table class="table table-bordered text-center align-middle mb-4">
     <thead>
@@ -190,7 +190,7 @@ body{
                     {% if day !=0 %}
                           {% set date_str = "%04d-%02d-%02d"|format(year, month ,day) %}
                           <a href="/day/{{date_str }}" style="text-decoration:none; font-weight:bold;">
-                          <a herf="/day/{{ year }}-{{'%02d' % month}}-{{'%02d' % day}}">
+                          <a href="/day/{{ year }}-{{'%02d' % month}}-{{'%02d' % day}}">
                                 {{day}}
                           </a>
                     {% endif %}
