@@ -92,8 +92,7 @@ def index():
     else:
         if session.get("today_only"):
             today = datetime.now().strftime("%Y-%m-%d")
-            records = query.filter(Data.date == today)\
-                .order_by(Data.date, Data.period).all()
+            records = query.filter(Data.date == today).order_by(Data.date, Data.period).all()
         else:
              records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
 
