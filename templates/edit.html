@@ -66,10 +66,12 @@ function toggleSubTeacher(select){
     const sub = document.getElementById("subTeacherField");
     sub.style.display = select.value === "決定" ? "block" : "none";
 }
-window.onload =function(){
-    const select = document.querySelector('select[name="status"]');
-    toggleSubTeacher(select);
-}
+window.addEventListener("DOMContentLoaded",function(){
+    const select =document.querySelector('select[name="status"]');
+    if (select) {
+        toggleSubTeacher(select);
+    }
+});
 </script>
 
 {% endblock %}
