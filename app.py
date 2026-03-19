@@ -102,10 +102,7 @@ def index():
     for r in records:
         key = r.date
         grouped[key].append(r)
-    today = datetime.today()
-    year = today.year
-    month = today.month
-    cal = calendar.monthcalendar(year, month)
+    
 
     return render_template("index.html", grouped=grouped, cal=cal, year=year, month=month)
 
