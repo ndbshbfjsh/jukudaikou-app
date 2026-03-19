@@ -50,6 +50,18 @@ def toggle_today():
 @app.route("/")
 def index():
     db.create_all()
+    import calendar
+    from datetime import datetime
+
+    year = request.args.get("year", type=int)
+    month = request.args.get("month", type=int)
+
+    if not year or not month:
+        today =datetime.today()
+        year = today.year
+        month = today.month
+    
+    cal = calendar.monthcalendar(year, month)
 
     limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
     Data.query.filter(Data.date <= limit_date).delete(synchronize_session=False)
@@ -89,7 +101,7 @@ def index():
     month = today.month
     cal = calendar.monthcalendar(year, month)
 
-    return render_template("index.html", grouped=grouped, calendar_data=cal, year=year, month=month)
+    return render_template("index.html", grouped=grouped, cal=cal, year=year, month=month)
 
 @app.route("/day/<date>")
 def day(date):
