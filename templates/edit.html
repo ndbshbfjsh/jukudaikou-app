@@ -14,7 +14,15 @@
 
     <div class="mb-3">
         <label>限目</label>
-        <input type="text" name="period" class="form-control">
+        <select name="period" class="form-control" multiple>
+            <option value="1">1限</option>
+            <option value="2">2限</option>
+            <option value="3">3限</option>
+            <option value="4">4限</option>
+            <option value="5">5限</option>
+            <option value="6">6限</option>
+            <option value="7">7限</option>
+        </select>
     </div>
 
     <div class="mb-3">
@@ -29,7 +37,7 @@
 
     <div class="mb-3">
         <label>状態</label>
-        <select name="status" class="form-control" onchange="toggleTeacher(this)">
+        <select name="status" class="form-control" onchange="toggleSubTeacher(this)">
             <option value="未定">未定</option>
             <option value="確定">確定</option>
         </select>
@@ -40,7 +48,7 @@
         <input name="teacher" class="form-control">
     </div>
 
-    <div class="mb-3" id="subteacherField" style="display:none;">
+    <div class="mb-3" id="subTeacherField" style="display:none;">
         <label class="form-label">代講先生</label>
         <input name="sub_teacher" class="form-control">
     </div>
@@ -57,6 +65,10 @@
 function toggleSubTeacher(select){
     const sub = document.getElementById("subTeacherField");
     sub.style.display = select.value === "決定" ? "block" : "none";
+}
+window.onload =function(){
+    const select = document.querySelector('select[name="status"]');
+    toggleSubTeacher(select);
 }
 </script>
 

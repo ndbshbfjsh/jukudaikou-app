@@ -114,22 +114,22 @@ def day(date):
 def edit_page():
     if request.method == "POST":
         date = request.form.get("date")
-        period = request.form.get("period")
+        period = request.form.getlist("period")
         time = request.form.get("time")
         teacher = request.form.get("teacher")
         status = request.form.get("status")
         note = request.form.get("note")
 
-        #既存データ取得　or　新規作成
-        record =Data.query.filter_by(date=date, period=period).first()
+        for p in periods:
+            record =Data.query.filter_by(date=date, period=p).first()
 
-        if record:
+            if record:
             record.time = time
             record.teacher = teacher
             record.status = status
             record.note = note
-        else:
-            record = Data(date=date, period=period, time=time, teacher=teacher, status=status, note=note )
+            else:
+            record = Data(date=date, period=p, time=time, teacher=teacher, status=status, note=note )
             db.session.add(record)
     
         db.session.commit()
