@@ -133,8 +133,7 @@ def edit_page():
             db.session.add(record)
     
         db.session.commit()
-
-         return redirect(f"/day/{date}")
+        return redirect(f"/day/{date}")
 
     date = request.args.get("date", "")
     return render_template("edit.html", date=date)
