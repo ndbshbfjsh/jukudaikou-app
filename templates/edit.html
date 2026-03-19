@@ -3,36 +3,60 @@
 
 <h2>編集</h2>
 
-<form method="post" action="/add" class="card p-3">
+<h2 class="text-center mb-4">✏ 代講編集</h2>
 
-    <input type="date" name="date" value="{{ date }}" class="form-control mb-2">
+<form method="POSt" class="container" style="max-width:500px;">
 
-    <input name="period" value="period" class="form-control mb-2">
-    <input name="time" value="time" class="form-control mb-2">
-    <input name="teacher" value="teacher" class="form-control mb-2">
+    <div class="mb-3">
+        <label>日付</label>
+        <input type="text" name="date" value="{{ date }}" class="form-control" readonly>
+    </div>
 
-    
+    <div class="mb-3">
+        <label>限目</label>
+        <input type="text" name="period" class="form-control">
+    </div>
 
-    <select name="status" class="form-control mb-2" onchange="toggleSubTeacher(this)">
-    <option value="未定" >未定</option>
-    <option value="決定" >決定</option>
-</select>
-<div id="subTeacherField"
-     style="display:none;>
-    <input name="sub_teacher"
-           value=""
-           placeholder="代講先生名"
-           class="form-control mb-2">
-</div>
-    <input name="note" value="data.note" class="form-control mb-2">
+    <div class="mb-3">
+        <label>時間</label>
+        <input type="text" name="time" class="form-control">
+    </div>
 
-    <button class="btn btn-success">更新</button>
+    <div class="mb-3">
+        <label>担当先生</label>
+        <input type="text" name="teacher" class="form-control">
+    </div>
 
+    <div class="mb-3">
+        <label>状態</label>
+        <select name="status" class="form-control" onchange="toggleTeacher(this)">
+            <option value="未定">未定</option>
+            <option value="確定">確定</option>
+        </select>
+    </div>
+
+    <div class="mb-3" id="teacherField">
+        <label class="form-label">担当先生</label>
+        <input name="teacher" class="form-control">
+    </div>
+
+    <div class="mb-3" id="subteacherField" style="display:none;">
+        <label class="form-label">代講先生</label>
+        <input name="sub_teacher" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label>メモ</label>
+        <textarea name="note" class="form-control"></textarea>
+    </div>
+
+    <button class="btn btn-success w-100">更新</button>
 </form>
+
 <script>
 function toggleSubTeacher(select){
-    const field = document.getElementById("subTeacherField");
-    field.style.display = select.value === "決定" ? "block" : "none";
+    const sub = document.getElementById("subTeacherField");
+    sub.style.display = select.value === "決定" ? "block" : "none";
 }
 </script>
 

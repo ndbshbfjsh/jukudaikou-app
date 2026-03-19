@@ -111,8 +111,32 @@ def day(date):
     records = Data.query.filter_by(date=date).order_by(Data.period).all()
     return render_template("day.html", records=records, date=date)
 
-@app.route("/edit")
+@app.route("/edit", methods=["GET", "POST"])
 def edit_page():
+    if request.method == "POST":
+        date = request.form.get("date")
+        period = request.form.get("period")
+        time = request.form.get("time")
+        teacher = request.form.get("teacher")
+        status = request.form.get("status")
+        note = request.form.get("note")
+
+        #既存データ取得　or　新規作成
+        record =Data.query.filter_by(date=date, period=period).first()
+
+        if record:
+            record.time = time
+            record.teacher = teacher
+            record.status = status
+            record.note = note
+        else:
+            record = Data(date=date, period=period, time=time, teacher=teacher, status=status, note=note )
+            db.session.add(record)
+    
+    db.session.commit()
+
+    return redirect(f"/day/{date}")
+
     date = request.args.get("date", "")
     return render_template("edit.html", date=date)
 # ---------------- 今日だけ ----------------
