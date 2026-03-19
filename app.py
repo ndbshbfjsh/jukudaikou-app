@@ -49,9 +49,9 @@ def toggle_today():
 
 @app.route("/")
 def index():
-    db.create_all()
+    #db.create_all()
     import calendar
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     year = request.args.get("year", type=int)
     month = request.args.get("month", type=int)
@@ -60,12 +60,18 @@ def index():
         today =datetime.today()
         year = today.year
         month = today.month
-    
+    if month < 1:
+        month = 12
+        year -= 1
+    elif month > 12:
+        month = 1
+        year += 1
+
     cal = calendar.monthcalendar(year, month)
 
-    limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
-    Data.query.filter(Data.date <= limit_date).delete(synchronize_session=False)
-    db.session.commit()
+    #limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
+    #Data.query.filter(Data.date <= limit_date).delete(synchronize_session=False)
+    #db.session.commit()
 
     sort = request.args.get("sort")
     teacher_search = request.args.get("teacher")
