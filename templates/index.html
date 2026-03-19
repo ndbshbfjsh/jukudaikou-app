@@ -163,15 +163,13 @@ body{
 
   <a href="/export" class="btn btn-success">Excel出力</a>
 </div>
-<div style="display:flex;justify-content:space-between;margin-bottom:10px">
-<a href="/?year={{ year if month>1 else year-1 }}&month={{ month-1 if month>1 else 12 }}">◀ 前月</a>
-<h3>{{ year }}年 {{ month }}月</h3>
 
-<a href="/?year={{ year if month<12 else year+1}}&month={{ month+1 if month<12 else 1}}">次月 ▶</a>
-</div>
 <h2 class="text-center mb-4 page-title">代講管理</h2>
 <h2 class="text-center mb-4">📅{{year}}年{{month}}月 カレンダー</h2>
-
+<div class="mb-3 text-center">
+    <a herf="/?year={{ year }}&month={{ month-1 }}" class="btn btn-primary">←前月</a>
+    <a herf="/?year={{ year }}&month={{ month+1 }}" class="btn btn-primary">次月→</a>
+</div>
 <table class="table table-bordered text-center align-middle mb-4">
     <thead>
           <tr>
