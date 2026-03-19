@@ -133,9 +133,9 @@ def edit_page():
             record = Data(date=date, period=period, time=time, teacher=teacher, status=status, note=note )
             db.session.add(record)
     
-    db.session.commit()
+        db.session.commit()
 
-    return redirect(f"/day/{date}")
+         return redirect(f"/day/{date}")
 
     date = request.args.get("date", "")
     return render_template("edit.html", date=date)
