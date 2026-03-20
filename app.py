@@ -116,6 +116,11 @@ def edit_page():
     record = Data.query.filter_by(date=date).first()
 
     if request.method == "POST":
+        action = request.form.get("action")
+        if action == "delete":
+            Data.query.filter_by(date=date).delete()
+            db.session.commit()
+            return redirect("/")
         periods = request.form.getlist("period")
         time = request.form.get("time")
         teacher = request.form.get("teacher")
