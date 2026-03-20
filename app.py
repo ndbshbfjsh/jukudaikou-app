@@ -125,7 +125,7 @@ def edit_page():
 
         existing_records = Data.query.filter_by(date=date).all()
 
-        for rec in exisiting_records:
+        for rec in existing_records:
             if rec.period not in periods:
                 db.session.delete(rec)
 
