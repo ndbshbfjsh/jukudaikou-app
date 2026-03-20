@@ -123,6 +123,12 @@ def edit_page():
         status = request.form.get("status")
         note = request.form.get("note")
 
+        existing_records = Data.query.filter_by(date=date).all()
+
+        for rec in exisiting_records:
+            if rec.period not in periods:
+                db.session.delete(rec)
+
         for p in periods:
             rec = Data.query.filter_by(date=date, period=p).first()
 
