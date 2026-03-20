@@ -112,31 +112,34 @@ def day(date):
 
 @app.route("/edit", methods=["GET", "POST"])
 def edit_page():
+    date = request.args.get("date")
+    record = Data.query.filter_by(date=date).first()
+
     if request.method == "POST":
-        date = request.form.get("date")
-        period = request.form.getlist("period")
+        periods = request.form.getlist("period")
         time = request.form.get("time")
         teacher = request.form.get("teacher")
+        sub_teacher = request.form.get("sub_teacher")
         status = request.form.get("status")
         note = request.form.get("note")
 
         for p in periods:
-            record =Data.query.filter_by(date=date, period=p).first()
+            rec = Data.query.filter_by(date=date, period=p).first()
 
-            if record:
-                record.time = time
-                record.teacher = teacher
-                record.status = status
-                record.note = note
+            if rec:
+                rec.time = time
+                rec.teacher = teacher
+                rec.sub_teacher = teacher
+                rec.status = status
+                rec.note = note
             else:
-                record = Data(date=date, period=p, time=time, teacher=teacher, status=status, note=note )
-            db.session.add(record)
-    
+                rec = Data(date=date, period=p, time=time, teacher=teacher, sub_teacher=sub_teacher, status=status, note=note)
+                db.session.add(rec)
         db.session.commit()
         return redirect(f"/day/{date}")
 
-    date = request.args.get("date", "")
-    return render_template("edit.html", date=date)
+
+    return render_template("edit.html", record=record, date=date)
 # ---------------- 今日だけ ----------------
 
 
