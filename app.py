@@ -131,13 +131,21 @@ def send_push_notification(title, body):
     public_key = os.getenv("VAPID_PUBLIC_KEY")
     private_key = os.getenv("VAPID_PRIVATE_KEY")
 
+    print("PUSH START")
+    print("PUBLIC KEY exists:", bool(public_key))
+    print("PRIVATE KEY exists:", bool(private_key))
+
     if not public_key or not private_key:
+        print("VAPID KEY MISSING")
         return
 
     subscriptions = PushSubscription.query.all()
+    print("SUB COUNT:", len(subscriptions))
 
     for sub in subscriptions:
         try:
+            print("SEND TO:", sub.endpoint[:50])
+
             webpush(
                 subscription_info=json.loads(sub.subscription_json),
                 data=json.dumps({
@@ -146,14 +154,18 @@ def send_push_notification(title, body):
                 }),
                 vapid_private_key=private_key,
                 vapid_claims={
-                    "sub": "mailto:test@example.com"
+                    "sub": "mailto:haozaisangu5@gmail.com"
                 }
             )
-        except WebPushException:
-            db.session.delete(sub)
-            db.session.commit()
-        except Exception:
-            pass
+
+            print("PUSH SUCCESS")
+
+        except WebPushException as e:
+            print("PUSH WEB ERROR:", repr(e))
+            print("RESPONSE:", getattr(e, "response", None))
+
+        except Exception as e:
+            print("PUSH ERROR:", repr(e))
 
 
 @app.route("/vapid_public_key")
