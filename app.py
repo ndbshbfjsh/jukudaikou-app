@@ -77,8 +77,12 @@ def index():
         year += 1
 
     cal = calendar.monthcalendar(year, month)
+    atart_date = f"{yaer:04d}-{month:02d}-01"
+    last_day = calendar.monthranger(yaer, month)[1]
+    end_date = f"{yaer:04d}-{month:02d}-{last_day:02d}"
 
     # その月の代講件数
+    records =Data.query.filter(Data.date >= atart_date,Data.date <= end_date).all
     count_by_date = {}
 
 teacher_status_by_date = defaultdict(dict)
