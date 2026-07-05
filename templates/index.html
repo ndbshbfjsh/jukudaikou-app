@@ -1,335 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
 
-<style>
-body{
-  background:#f5f7fb;
-}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a href="/?year={{ year }}&month={{ month - 1 }}" class="btn btn-outline-secondary btn-lg">&lt;</a>
+        <a href="/?year={{ year }}&month={{ month + 1 }}" class="btn btn-outline-secondary btn-lg">&gt;</a>
+        <a href="/" class="btn btn-outline-secondary btn-lg">今月</a>
+    </div>
 
-.container{
-  max-width: 960px;
-}
-
-.page-title{
-  font-weight: 700;
-  letter-spacing: .03em;
-}
-
-.top-toolbar{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:18px;
-}
-
-.form-card,
-.lesson-card{
-  border:none;
-  border-radius:16px;
-  overflow:hidden;
-}
-
-.form-card{
-  box-shadow:0 6px 18px rgba(0,0,0,.06);
-}
-
-.lesson-card{
-  box-shadow:0 4px 14px rgba(0,0,0,.05);
-  transition:.18s ease;
-}
-
-.lesson-card:hover{
-  transform:translateY(-1px);
-}
-
-.date-heading{
-  margin-top:30px;
-  margin-bottom:14px;
-  padding-bottom:8px;
-  border-bottom:2px solid #dfe6ee;
-  font-size:1.05rem;
-  font-weight:700;
-}
-
-.lesson-card.today-card{
-  background:#fff8db;
-  border-left:6px solid #ffc107;
-}
-
-.lesson-meta{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px 12px;
-  align-items:center;
-  margin-bottom:8px;
-}
-
-.period-badge{
-  display:inline-block;
-  font-weight:700;
-  font-size:15px;
-  padding:6px 10px;
-  border-radius:999px;
-  background:#eef3ff;
-}
-
-.lesson-time{
-  color:#556;
-  font-size:14px;
-}
-
-.teacher-line{
-  font-size:16px;
-  font-weight:600;
-  margin-bottom:4px;
-}
-
-.sub-line{
-  color:#c62828;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.note-line{
-  color:#6c757d;
-  font-size:14px;
-  margin-top:8px;
-  margin-bottom:0;
-  white-space:pre-wrap;
-}
-
-.badge-status{
-  font-size:12px;
-  padding:7px 10px;
-  border-radius:999px;
-}
-
-.badge-mitei{
-  background:#6c757d;
-}
-
-.badge-kettei{
-  background:#198754;
-}
-
-.action-buttons{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-
-.section-label{
-  font-size:13px;
-  font-weight:700;
-  color:#667085;
-  margin-bottom:6px;
-}
-
-.empty-box{
-  background:#fff;
-  border-radius:14px;
-  padding:24px;
-  text-align:center;
-  color:#667085;
-  box-shadow:0 4px 14px rgba(0,0,0,.04);
-}
-
-@media (max-width: 767px){
-  .lesson-row{
-    flex-direction:column;
-    align-items:flex-start !important;
-    gap:14px;
-  }
-
-  .action-buttons{
-    width:100%;
-    justify-content:flex-start;
-  }
-}
-</style>
-
-<div class="top-toolbar">
-  <a href="/toggle_today"
-     class="btn {% if session.get('today_only') %}btn-success{% else %}btn-outline-primary{% endif %}">
-    {% if session.get("today_only") %}
-      ✅ 今日だけ表示中（クリックで全表示）
-    {% else %}
-      📅 今日だけ表示
-    {% endif %}
-  </a>
-
-  <a href="/export" class="btn btn-success">Excel出力</a>
+    <div>
+        <a href="/export" class="btn btn-success">Excel出力</a>
+    </div>
 </div>
 
-<h2 class="text-center mb-4 page-title">代講管理</h2>
-<h2 class="text-center mb-4">📅{{year}}年{{month}}月 カレンダー</h2>
-<div class="mb-3 text-center">
-    <a href="/?year={{ year }}&month={{ month-1 }}" class="btn btn-primary">←前月</a>
-    <a href="/?year={{ year }}&month={{ month+1 }}" class="btn btn-primary">次月→</a>
+<div class="calendar-title mb-3">
+    {{ year }}年{{ month }}月
 </div>
-<table class="table table-bordered text-center align-middle mb-4">
+
+<table class="calendar-table">
     <thead>
-          <tr>
+        <tr>
+            <th class="sun">日</th>
             <th>月</th>
             <th>火</th>
             <th>水</th>
             <th>木</th>
             <th>金</th>
-            <th>土</th>
-            <th>日</th>
-          </tr>
+            <th class="sat">土</th>
+        </tr>
     </thead>
+
     <tbody>
-          {% for week in cal %}
-          <tr>
-              {% for day in week %}
-              <td style="height:80px; vertical-align:top;">
-                    {% if day !=0 %}
-                          {% set date_str = "%04d-%02d-%02d"|format(year, month ,day) %}
-                          <a href="/day/{{date_str }}" style="text-decoration:none; font-weight:bold;">
-                          <a href="/day/{{ year }}-{{'%02d' % month}}-{{'%02d' % day}}">
-                                {{day}}
-                          </a>
-                    {% endif %}
-              </td>
-              {% endfor %}
-          </tr>
-          {% endfor %}
-    </tbody>
-  </table>
-
-<div class="top-toolbar mb-4">
-  <a href="/?sort=date" class="btn btn-outline-primary btn-sm">日付順</a>
-  <a href="/?status=mitei" class="btn btn-warning btn=sm">未定だけ</a>
-</div>
-
-<form method="post" action="/add" class="card form-card p-3 p-md-4 mb-4">
-  <div class="row g-3">
-    <div class="col-12">
-      <div class="section-label">校舎</div>
-      <select name="branch" class="form-select">
-        <option value="豊中校">豊中校</option>
-        <option value=""></option>
-        <option value=""></option>
-      </select>
-    </div>
-
-    <div class="col-12">
-      <div class="section-label">日付</div>
-      <input type="date" name="date" required class="form-control" value="{{ date }}">
-    </div>
-
-    <div class="col-md-6">
-      <div class="section-label">時限</div>
-      <select name="period" class="form-select" multiple>
-
-      <option value="1">1限</option>
-      <option value="2">2限</option>
-      <option value="3">3限</option>
-      <option value="4">4限</option>
-      <option value="5">5限</option>
-      <option value="6">6限</option>
-      <option value="7">7限</option>
-
-</select>
-    </div>
-
-    <div class="col-md-6">
-      <div class="section-label">時間</div>
-      <input name="time" placeholder="例：17:00〜18:20" class="form-control">
-    </div>
-
-    <div class="col-12">
-      <div class="section-label">先生名</div>
-      <input name="teacher" placeholder="先生名" required class="form-control">
-    </div>
-
-    <div class="col-md-6">
-      <div class="section-label">状態</div>
-      <select name="status" class="form-select" onchange="toggleSubTeacher(this)">
-        <option value="未定">未定</option>
-        <option value="決定">決定</option>
-      </select>
-    </div>
-
-    <div class="col-md-6" id="subTeacherField" style="display:none;">
-      <div class="section-label">代講先生名</div>
-      <input name="sub_teacher" placeholder="代講先生名" class="form-control">
-    </div>
-
-    <div class="col-12">
-      <div class="section-label">備考</div>
-      <input name="note" placeholder="備考" class="form-control">
-    </div>
-
-    <div class="col-12">
-      <button class="btn btn-primary w-100">追加</button>
-    </div>
-  </div>
-</form>
-
-{% if grouped %}
-  {% for group in grouped.values() %}
-    {% set d0 = group[0] %}
-
-    <div class="date-heading">
-      📅 {{ d0.date }}
-    </div>
-
-    {% for d in group %}
-      <div class="card lesson-card mb-3 {% if session.get('today_only') %}today-card{% endif %}">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center lesson-row">
-            <div class="flex-grow-1">
-              <div class="lesson-meta">
-                <span class="period-badge">{{ d.period }}限</span>
-
-                {% if d.time %}
-                  <span class="lesson-time">🕒 {{ d.time }}</span>
-                {% endif %}
-
-                {% if d.status == "決定" %}
-                  <span class="badge badge-status badge-kettei">決定</span>
+        {% for week in cal %}
+        <tr>
+            {% for day in week %}
+                {% if day == 0 %}
+                    <td class="other-month"></td>
                 {% else %}
-                  <span class="badge badge-status badge-mitei">未定</span>
+                    {% set date_str = "%04d-%02d-%02d"|format(year, month, day) %}
+
+                    <td class="{% if date_str == today %}today-cell{% endif %}">
+                        <a href="/day/{{ date_str }}" class="day-link">
+                            <div class="text-end">{{ day }}</div>
+
+                            {% if count_by_date[date_str] %}
+                                <div class="count-badge">
+                                    {{ count_by_date[date_str] }}件
+                                </div>
+                            {% endif %}
+                        </a>
+                    </td>
                 {% endif %}
-              </div>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-              <div class="teacher-line">👨‍🏫 {{ d.teacher }}</div>
-
-              {% if d.status == "決定" and d.sub_teacher %}
-                <div class="sub-line">代講：{{ d.sub_teacher }}</div>
-              {% endif %}
-
-              {% if d.note %}
-                <p class="note-line">📝 {{ d.note }}</p>
-              {% endif %}
-            </div>
-
-            <div class="action-buttons">
-              <a href="/edit/{{ d.id }}" class="btn btn-sm btn-outline-secondary">編集</a>
-              <a href="/delete/{{ d.id }}" class="btn btn-sm btn-outline-danger"
-                 onclick="return confirm('このデータを削除しますか？')">削除</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    {% endfor %}
-  {% endfor %}
-{% else %}
-  <div class="empty-box">
-    表示するデータがありません
-  </div>
-{% endif %}
-
-<script>
-function toggleSubTeacher(select){
-  const field = document.getElementById("subTeacherField");
-  field.style.display = select.value === "決定" ? "block" : "none";
-}
-</script>
+<div class="mt-3">
+    <span class="count-badge">件数</span>
+    その日の代講登録数
+</div>
 
 {% endblock %}

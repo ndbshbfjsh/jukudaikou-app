@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, send_file, session
 from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
-from datetime import datetime
-from openpyxl import Workbook
 from datetime import datetime, timedelta
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font
+from openpyxl.utils import get_column_letter
 import os
 import io
 import calendar
@@ -13,8 +14,11 @@ app.secret_key = "anything-secret"
 
 db_url = os.getenv("DATABASE_URL")
 
+if db_url:
+    db_url = db_url.strip()
 if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    db_url = db_url.replace("postgres://","postgresql://",1)
+
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///instance/database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -26,10 +30,9 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db = SQLAlchemy(app)
 
 
-
 class Data(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    branch = db.Column(db.String(100))  # ←追加
+    branch = db.Column(db.String(100))
     date = db.Column(db.String(20))
     period = db.Column(db.String(10))
     time = db.Column(db.String(20))
@@ -37,29 +40,35 @@ class Data(db.Model):
     status = db.Column(db.String(20))
     sub_teacher = db.Column(db.String(100))
     note = db.Column(db.String(200))
+
+
 with app.app_context():
     db.create_all()
 
-    
-# ---------------- 一覧 ----------------
-@app.route("/toggle_today")
-def toggle_today():
-    session["today_only"] = not session.get("today_only", False)
-    return redirect("/")
 
+PERIOD_TIMES = {
+    "1": "9:30 ～ 10:50",
+    "2": "11:00 ～ 12:20",
+    "3": "13:20 ～ 14:40",
+    "4": "15:00 ～ 16:20",
+    "5": "16:30 ～ 17:50",
+    "6": "18:05 ～ 19:25",
+    "7": "19:35 ～ 20:55",
+}
+
+
+# ---------------- カレンダー画面 ----------------
 @app.route("/")
 def index():
-    #db.create_all()
-    import calendar
-    from datetime import datetime, timedelta
-
     year = request.args.get("year", type=int)
     month = request.args.get("month", type=int)
 
+    today = datetime.today()
+
     if not year or not month:
-        today =datetime.today()
         year = today.year
         month = today.month
+
     if month < 1:
         month = 12
         year -= 1
@@ -69,169 +78,123 @@ def index():
 
     cal = calendar.monthcalendar(year, month)
 
-    #limit_date = (datetime.now() - timedelta(days=35)).strftime("%Y-%m-%d")
-    #Data.query.filter(Data.date <= limit_date).delete(synchronize_session=False)
-    #db.session.commit()
+    # その月の代講件数
+    start_date = f"{year:04d}-{month:02d}-01"
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = f"{year:04d}-{month:02d}-{last_day:02d}"
 
-    sort = request.args.get("sort")
-    teacher_search = request.args.get("teacher")
-    status_filter=request.args.get("status")
-    query = Data.query
-    if status_filter == "mitei":
-        query = query.filter(Data.status == "未定")
+    records = Data.query.filter(
+        Data.date >= start_date,
+        Data.date <= end_date
+    ).all()
 
-    if teacher_search:
-        query = query.filter(Data.teacher.contains(teacher_search))
-
-    if sort == "teacher":
-        records = query.order_by(Data.teacher, Data.date, Data.period).all()
-
-    elif sort == "status":
-        records = query.order_by(Data.status.desc(), Data.date, Data.period).all()
-
-    else:
-        if session.get("today_only"):
-            today = datetime.now().strftime("%Y-%m-%d")
-            records = query.filter(Data.date == today).order_by(Data.date, Data.period).all()
-        else:
-             records = query.order_by(Data.status.desc(), Data.date,Data.period).all()
-
-    grouped = defaultdict(list)
-
+    count_by_date = defaultdict(int)
     for r in records:
-        key = r.date
-        grouped[key].append(r)
-    
+        count_by_date[r.date] += 1
 
-    return render_template("index.html", grouped=grouped, cal=cal, year=year, month=month)
+    return render_template(
+        "index.html",
+        year=year,
+        month=month,
+        cal=cal,
+        count_by_date=count_by_date,
+        today=today.strftime("%Y-%m-%d")
+    )
 
-@app.route("/day/<date>")
+
+# ---------------- 日付を押した後の入力画面 ----------------
+@app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
-    records = Data.query.filter_by(date=date).order_by(Data.period).all()
-    return render_template("day.html", records=records, date=date)
-
-@app.route("/edit", methods=["GET", "POST"])
-def edit_page():
-    date = request.args.get("date")
-    record = Data.query.filter_by(date=date).first()
-
     if request.method == "POST":
-        action = request.form.get("action")
-        if action == "delete":
-            Data.query.filter_by(date=date).delete()
-            db.session.commit()
-            return redirect("/")
-        periods = request.form.getlist("period")
-        time = request.form.get("time")
+        branch = request.form.get("branch")
         teacher = request.form.get("teacher")
-        sub_teacher = request.form.get("sub_teacher")
         status = request.form.get("status")
+        sub_teacher = request.form.get("sub_teacher")
         note = request.form.get("note")
+        periods = request.form.getlist("period")
 
-        existing_records = Data.query.filter_by(date=date).all()
+        # 決定じゃないなら代講先生は空にする
+        if status != "決定":
+            sub_teacher = ""
 
-        for rec in existing_records:
-            if rec.period not in periods:
-                db.session.delete(rec)
-
+        # チェックされた限だけ追加
         for p in periods:
-            rec = Data.query.filter_by(date=date, period=p).first()
+            new = Data(
+                branch=branch,
+                date=date,
+                period=p,
+                time=PERIOD_TIMES.get(p, ""),
+                teacher=teacher,
+                status=status,
+                sub_teacher=sub_teacher,
+                note=note
+            )
+            db.session.add(new)
 
-            if rec:
-                rec.time = time
-                rec.teacher = teacher
-                rec.sub_teacher = teacher
-                rec.status = status
-                rec.note = note
-            else:
-                rec = Data(date=date, period=p, time=time, teacher=teacher, sub_teacher=sub_teacher, status=status, note=note)
-                db.session.add(rec)
         db.session.commit()
         return redirect(f"/day/{date}")
 
+    records = Data.query.filter_by(date=date).order_by(Data.period).all()
 
-    return render_template("edit.html", record=record, date=date)
-# ---------------- 今日だけ ----------------
+    records_by_period = defaultdict(list)
+    for r in records:
+        records_by_period[r.period].append(r)
 
-
-
-# ---------------- 追加 ----------------
-@app.route("/add", methods=["POST"])
-def add():
-    periods = request.form.getlist("period")
-
-    for p in periods:
-        new = Data(
-            branch=request.form["branch"],
-            date=request.form["date"],
-            period=p,
-            time=request.form["time"],
-            teacher=request.form["teacher"],
-            status=request.form["status"],
-            sub_teacher=request.form.get("sub_teacher"),
-            note=request.form["note"]
-        )
-        db.session.add(new)
-
-    db.session.commit()
-    return redirect("/")
-
-
-# ---------------- 編集 ----------------
-@app.route("/edit/<int:id>")
-def edit(id):
-    target = Data.query.get(id)
-    return render_template("edit.html", data=target)
-
-
-# ---------------- 更新 ----------------
-@app.route("/update/<int:id>", methods=["POST"])
-def update(id):
-    periods=request.form.getlist("period")
-    old=Data.query.get(id)
-    db.session.delete(old)
-    for p in periods:
-
-        data = Data(
-        branch=branch,
+    return render_template(
+        "day.html",
         date=date,
-        period=p,
-        time=time,
-        teacher=teacher,
-        status=status,
-        sub_teacher=sub_teacher,
-        note=note
+        period_times=PERIOD_TIMES,
+        records_by_period=records_by_period,
+        records=records
     )
 
-        db.session.add(data)
 
-    db.session.commit()
-    return redirect("/")
+# ---------------- 編集画面 ----------------
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit(id):
+    data = Data.query.get_or_404(id)
+
+    if request.method == "POST":
+        data.branch = request.form.get("branch")
+        data.teacher = request.form.get("teacher")
+        data.status = request.form.get("status")
+        data.sub_teacher = request.form.get("sub_teacher")
+        data.note = request.form.get("note")
+
+        if data.status != "決定":
+            data.sub_teacher = ""
+
+        db.session.commit()
+        return redirect(f"/day/{data.date}")
+
+    return render_template("edit.html", data=data)
 
 
 # ---------------- 削除 ----------------
 @app.route("/delete/<int:id>")
 def delete(id):
-    target = Data.query.get(id)
-    db.session.delete(target)
+    data = Data.query.get_or_404(id)
+    date = data.date
+    db.session.delete(data)
     db.session.commit()
-    return redirect("/")
+    return redirect(f"/day/{date}")
 
 
-# ---------------- Excel ----------------
+# ---------------- Excel出力 ----------------
 @app.route("/export")
 def export():
-    from openpyx1.styles import Alignment, Font
-    from openpyx1.utils import get_column_letter
     records = Data.query.order_by(Data.date, Data.period).all()
 
     wb = Workbook()
     ws = wb.active
-    ws.append(["日付", "限", "時間", "先生", "状態", "代講先生", "備考"])
+    ws.title = "代講一覧"
+
+    ws.append(["日付", "校舎", "限", "時間", "先生", "状態", "代講先生", "備考"])
 
     for r in records:
         ws.append([
             r.date,
+            r.branch,
             r.period,
             r.time,
             r.teacher,
@@ -239,18 +202,21 @@ def export():
             r.sub_teacher,
             r.note
         ])
-        for col in ws.columns:
-            max_length = 0
-            col_letter = get_column_letter(col[0].column)
-            for cell in col:
-                if cell.value:
-                    max_length = max(max_length,len(str(cell.value)))
-            ws.column_dimension[col_letter].width = max_length + 4
-        for cell in ws[1]:
-            cell.font = Font(bold=True)
-        for row in ws.iter_rows():
-            for cell in row:
-                cell.alignment = Alignment(horizontal="center")
+
+    for col in ws.columns:
+        max_length = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max_length + 4
+
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal="center")
 
     file_stream = io.BytesIO()
     wb.save(file_stream)
@@ -262,5 +228,9 @@ def export():
         download_name="daikou.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
