@@ -43,9 +43,9 @@
                         <a href="/day/{{ date_str }}" class="day-link">
                             <div class="text-end">{{ day }}</div>
 
-                            {% if count_by_date[date_str] %}
+                            {% if count_by_date.get(date_str,0) > 0 %}
                                 <div class="count-badge">
-                                    {{ count_by_date[date_str] }}件
+                                    {{ count_by_date.get(date_str, 0) }}件
                                 </div>
                             {% endif %}
                         </a>
