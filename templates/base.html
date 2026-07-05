@@ -49,55 +49,55 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function enablePush() {
-    alert("通知ON開始");
+    try {
+        alert("通知ON開始");
 
-    if (!("serviceWorker" in navigator)) {
-        alert("この端末はService Workerに対応していません");
-        return;
+        const permission = await Notification.requestPermission();
+        alert("通知許可状態：" + permission);
+
+        if (permission !== "granted") {
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.register("/static/service-worker.js");
+        alert("Service Worker登録OK");
+
+        const keyRes = await fetch("/vapid_public_key");
+        const keyData = await keyRes.json();
+        alert("公開キー取得OK");
+
+        console.log("publicKey=", keyData.publicKey);
+
+        const oldSub = await registration.pushManager.getSubscription();
+        if (oldSub) {
+            await oldSub.unsubscribe();
+            alert("古い登録削除OK");
+        }
+
+        const appKey = urlBase64ToUint8Array(keyData.publicKey);
+        alert("キー変換OK");
+
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: appKey
+        });
+
+        alert("通知登録作成OK");
+
+        await fetch("/subscribe", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(subscription)
+        });
+
+        alert("スマホ通知をONにしました");
+
+    } catch (e) {
+        alert("通知登録エラー：" + e.message);
+        console.error(e);
     }
-
-    if (!("PushManager" in window)) {
-        alert("このブラウザはPush通知に対応していません");
-        return;
-    }
-
-    const permission = await Notification.requestPermission();
-    alert("通知許可状態：" + permission);
-
-    if (permission !== "granted") {
-        alert("通知が許可されませんでした");
-        return;
-    }
-
-    const registration = await navigator.serviceWorker.register("/static/service-worker.js");
-    alert("Service Worker登録OK");
-
-    const keyRes = await fetch("/vapid_public_key");
-    const keyData = await keyRes.json();
-    alert("公開キー取得OK");
-
-    const oldSub = await registration.pushManager.getSubscription();
-    if (oldSub) {
-        await oldSub.unsubscribe();
-        alert("古い通知登録を削除しました");
-    }
-
-    const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
-    });
-
-    alert("通知登録作成OK");
-
-    await fetch("/subscribe", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(subscription)
-    });
-
-    alert("スマホ通知をONにしました");
 }
 
 if ("serviceWorker" in navigator) {
