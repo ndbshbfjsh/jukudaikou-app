@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>代講管理</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0d6efd"
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -175,13 +177,24 @@
 <body class="p-2">
 
 <div class="top-btn">
+    <button onclick="requestNotificationPermission()" class="btn btn-sm btn-primary">🔔　通知オン</button>
     <button onclick="toggleTheme()" class="btn btn-sm btn-dark">🌙 ダークモード切替</button>
 </div>
 
 <div class="main-wrap">
     {% block content %}{% endblock %}
 </div>
-
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <script>
+            window.addEventListener("DOMContentLoaded", function() {
+                {% for message in messages %}
+                    showNotification("代講管理", "{{ message }}");
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+{% endwith %}
 <script>
 function toggleTheme() {
     const current = document.documentElement.getAttribute("data-bs-theme");
@@ -190,6 +203,36 @@ function toggleTheme() {
     localStorage.setItem("theme", newTheme);
 }
 </script>
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/service-worker.js");
+}
 
+function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        alert("この端末は通知に対応していません");
+        return;
+    }
+
+    Notification.requestPermission().then(function(permission) {
+        if (permission === "granted") {
+            alert("通知をONにしました");
+        } else {
+            alert("通知が許可されませんでした");
+        }
+    });
+}
+
+function showNotification(title, body) {
+    if (!("Notification" in window)) return;
+
+    if (Notification.permission === "granted") {
+        new Notification(title, {
+            body: body,
+            icon: "/static/icon-192.png"
+        });
+    }
+}
+</script>
 </body>
 </html>

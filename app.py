@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_file, session
+from flask import Flask, render_template, request, redirect, send_file, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -268,6 +268,7 @@ def day(date):
                 db.session.add(new)
 
             db.session.commit()
+            fiash("代講を追加しました")
             return redirect(f"/day/{date}")
 
     records = Data.query.filter_by(date=date).order_by(Data.period).all()
