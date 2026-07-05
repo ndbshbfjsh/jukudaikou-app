@@ -280,7 +280,7 @@ def day(date):
         date=date,
         period_times=period_times,
         records_by_period=records_by_period,
-        records=records
+        records=records,
         calc_minutes=calc_minutes
     )
 
