@@ -79,35 +79,34 @@ def index():
     cal = calendar.monthcalendar(year, month)
 
     # その月の代講件数
-    start_date = f"{year:04d}-{month:02d}-01"
-    last_day = calendar.monthrange(year, month)[1]
-    end_date = f"{year:04d}-{month:02d}-{last_day:02d}"
-
-    records = Data.query.filter(
-        Data.date >= start_date,
-        Data.date <= end_date
-    ).all()
-
-    teacher_by_date = defaultdict(set)
-    for r in records:
-        if r.teacher:
-            teacher_by_date[r.date].add(r.teacher)
-
     count_by_date = {}
 
-    for date_key, teachers in teacher_by_date.items():
-        count_by_date[date_key] = len(teachers)
+teacher_status_by_date = defaultdict(dict)
 
+for r in records:
+    if not r.teacher:
+        continue
 
-    return render_template(
-        "index.html",
-        year=year,
-        month=month,
-        cal=cal,
-        count_by_date=count_by_date,
-        today=today.strftime("%Y-%m-%d")
-    )
+    teacher_status_by_date[r.date][r.teacher] = r.status
 
+for date_key, teachers in teacher_status_by_date.items():
+    blue = 0
+    red = 0
+    yellow = 0
+
+    for teacher, status in teachers.items():
+        if status == "決定":
+            blue += 1
+        elif status == "未定":
+            red += 1
+        else:
+            yellow += 1
+
+    count_by_date[date_key] = {
+        "blue": blue,
+        "red": red,
+        "yellow": yellow
+    }
 
 # ---------------- 日付を押した後の入力画面 ----------------
 @app.route("/day/<date>", methods=["GET", "POST"])

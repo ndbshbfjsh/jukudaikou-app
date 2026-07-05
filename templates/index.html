@@ -43,10 +43,22 @@
                         <a href="/day/{{ date_str }}" class="day-link">
                             <div class="text-end">{{ day }}</div>
 
-                            {% if count_by_date.get(date_str,0) > 0 %}
-                                <div class="count-badge">
-                                    {{ count_by_date.get(date_str, 0) }}件
-                                </div>
+                            {% set count = count_by_date.get(date_str) %}
+
+                            {% if count %}
+                                <div>
+                                    {% if count.blue > 0 %}
+                                        <span class="count-badge bg-primary">{{ count.blue }}件</span>
+                                    {% endif %}
+
+                                    {% if count.red > 0 %}
+                                        <span class="count-badge bg-danger">{{ count.red }}件</span>
+                                    {% endif %}
+
+                                    {% if count.yellow > 0 %}
+                                        <span class="count-badge bg-warning text-dark">{{ count.yellow }}件</span>
+                                    {% endif %}
+                                </div>                              
                             {% endif %}
                         </a>
                     </td>
