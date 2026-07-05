@@ -190,6 +190,24 @@ def day(date):
         records=records
     )
 
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit(id):
+    data = Data.query.get_or_404(id)
+
+    if request.method == "POST":
+        data.branch = request.form.get("branch")
+        data.teacher = request.form.get("teacher")
+        data.status = request.form.get("status")
+        data.sub_teacher = request.form.get("sub_teacher")
+        data.note = request.form.get("note")
+
+        if data.status != "決定":
+            data.sub_teacher = ""
+
+        db.session.commit()
+        return redirect(f"/day/{data.date}")
+
+    return render_template("edit.html", data=data)
 # ---------------- 削除 ----------------
 @app.route("/delete/<int:id>")
 def delete(id):
