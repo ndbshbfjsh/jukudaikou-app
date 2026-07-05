@@ -46,7 +46,7 @@ with app.app_context():
     db.create_all()
 
 
-PERIOD_TIMES = {
+SUNDAY_PERIOD_TIMES = {
     "1": "9:30 ～ 10:50",
     "2": "11:00 ～ 12:20",
     "3": "13:20 ～ 14:40",
@@ -55,6 +55,57 @@ PERIOD_TIMES = {
     "6": "18:05 ～ 19:25",
     "7": "19:35 ～ 20:55",
 }
+
+SATURDAY_PERIOD_TIMES = {
+    "1": "9:30 ～ 10:50",
+    "1-1": "1限 1/2　9:20 ～ 10:05",
+    "1-2": "1限 2/2　10:05 ～ 10:50",
+    "2": "11:00 ～ 12:20",
+    "2-1": "2限 1/2　10:50 ～ 11:35",
+    "2-2": "2限 2/2　11:35 ～ 12:20",
+    "3s": "3限（小学生集団）13:20 ～ 14:20",
+    "3": "13:20 ～ 14:40",
+    "3-1": "3限 1/2　13:10 ～ 13:55",
+    "3-2": "3限 2/2　13:55 ～ 14:40",
+    "4": "14:50 ～ 16:10",
+    "4-1": "4限 1/2　14:50 ～ 15:35",
+    "4-2": "4限 2/2　15:35 ～ 16:20",
+    "5": "16:30 ～ 17:50",
+    "6": "18:05 ～ 19:25",
+    "7": "19:35 ～ 20:55",
+}
+
+WEEKDAY_PERIOD_TIMES = {
+    "1-1": "1限 1/2　9:20 ～ 10:05",
+    "1-2": "1限 2/2　10:05 ～ 10:50",
+    "2": "11:00 ～ 12:20",
+    "2-1": "2限 1/2　10:50 ～ 11:35",
+    "2-2": "2限 2/2　11:35 ～ 12:20",
+    "3s": "3限（小学生集団）13:20 ～ 14:20",
+    "3": "13:20 ～ 14:40",
+    "3-1": "3限 1/2　13:10 ～ 13:55",
+    "3-2": "3限 2/2　13:55 ～ 14:40",
+    "4": "14:50 ～ 16:10",
+    "4-1": "4限 1/2　15:25 ～ 16:10",
+    "4-2": "4限 2/2　16:10 ～ 16:55",
+    "5s": "5限（小学生集団）17:15 ～ 18:15",
+    "5": "17:15 ～ 18:35",
+    "5-1": "5限 1/2　17:05 ～ 17:50",
+    "5-2": "5限 2/2　17:50 ～ 18:35",
+    "6": "18:45 ～ 20:05",
+    "7": "20:15 ～ 21:35",
+}
+
+def get_period_times(date_str):
+    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+    weekday = date_obj.weekday()
+
+    if weekday == 6:
+        return SUNDAY_PERIOD_TIMES
+    elif weekday == 5:
+        return SATURDAY_PERIOD_TIMES
+    else:
+        return WEEKDAY_PERIOD_TIMES
 
 
 # ---------------- カレンダー画面 ----------------
@@ -128,6 +179,7 @@ def index():
 # ---------------- 日付を押した後の入力画面 ----------------
 @app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
+    period_time = get_period_times(date)
     if request.method == "POST":
         action = request.form.get("action")
 
@@ -188,7 +240,7 @@ def day(date):
                     branch=branch,
                     date=date,
                     period=p,
-                    time=PERIOD_TIMES.get(p, ""),
+                    time=period_times.get(p, ""),
                     teacher=teacher,
                     status=status,
                     sub_teacher=sub_teacher,
@@ -208,7 +260,7 @@ def day(date):
     return render_template(
         "day.html",
         date=date,
-        period_times=PERIOD_TIMES,
+        period_times=period_times,
         records_by_period=records_by_period,
         records=records
     )
