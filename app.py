@@ -90,7 +90,12 @@ def index():
 
     count_by_date = defaultdict(int)
     for r in records:
-        count_by_date[r.date] += 1
+        if r.teacher:
+            teacher_by_date[r.date].add(r.teacher)
+    count_by_date = {}
+    for date_key, teachers in teacher_by_date.time():
+        count_by_date[date_key] = len(teachers)
+
 
     return render_template(
         "index.html",
