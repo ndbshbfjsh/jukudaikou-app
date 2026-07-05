@@ -106,7 +106,25 @@ def get_period_times(date_str):
         return SATURDAY_PERIOD_TIMES
     else:
         return WEEKDAY_PERIOD_TIMES
+def calc_minutes(time_text):
+    try:
+        if "～" not in time_text:
+            return ""
 
+        time_part = time_text.split("　")[-1]
+        start, end = time_part.split("～")
+
+        start = start.strip()
+        end = end.strip()
+
+        start_dt = datetime.strptime(start, "%H:%M")
+        end_dt = datetime.strptime(end, "%H:%M")
+
+        minutes = int((end_dt - start_dt).total_seconds() / 60)
+        return minutes
+
+    except:
+        return ""
 
 # ---------------- カレンダー画面 ----------------
 @app.route("/")
@@ -263,6 +281,7 @@ def day(date):
         period_times=period_times,
         records_by_period=records_by_period,
         records=records
+        calc_minutes=calc_minutes
     )
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
