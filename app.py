@@ -58,7 +58,13 @@ class NotificationLog(db.Model):
 
 with app.app_context():
     db.create_all()
+    try:
+        db.session.execute(db.text("DROP TABLE IF EXISTS push_subscription"))
+        db.session.commit()
+    except Exception as e:
+        print("DROP push_subscription error:", e)
 
+    db.create_all()
 
 SUNDAY_PERIOD_TIMES = {
     "1": "1限　9:30 ～ 10:50",
