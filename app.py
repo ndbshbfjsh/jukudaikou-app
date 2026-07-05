@@ -8,6 +8,7 @@ from openpyxl.utils import get_column_letter
 import os
 import io
 import calendar
+calendar.setfirstweekday(calendar.SUNDAY)
 
 app = Flask(__name__)
 app.secret_key = "anything-secret"
