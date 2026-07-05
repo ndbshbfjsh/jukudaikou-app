@@ -88,12 +88,14 @@ def index():
         Data.date <= end_date
     ).all()
 
-    count_by_date = defaultdict(int)
+    teacher_by_date = defaultdict(set)
     for r in records:
         if r.teacher:
             teacher_by_date[r.date].add(r.teacher)
+
     count_by_date = {}
-    for date_key, teachers in teacher_by_date.time():
+
+    for date_key, teachers in teacher_by_date.items():
         count_by_date[date_key] = len(teachers)
 
 
