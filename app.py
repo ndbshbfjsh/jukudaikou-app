@@ -440,6 +440,10 @@ def export():
 def test_push():
     send_push_notification("塾代講管理","テスト通知です")
     return "test push sent"
-
+@app.route("/clear_subscriptions")
+def clear_subscriptions():
+    PushSubscription.query.delete()
+    db.session.commit()
+    return "subscriptions cleared"
 if __name__ == "__main__":
     app.run(debug=True)
