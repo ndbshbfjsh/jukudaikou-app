@@ -106,33 +106,75 @@ def index():
 @app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
     if request.method == "POST":
-        branch = request.form.get("branch")
-        teacher = request.form.get("teacher")
-        status = request.form.get("status")
-        sub_teacher = request.form.get("sub_teacher")
-        note = request.form.get("note")
-        periods = request.form.getlist("period")
+        action = request.form.get("action")
 
-        # 決定じゃないなら代講先生は空にする
-        if status != "決定":
-            sub_teacher = ""
+        # 一括削除
+        if action == "bulk_delete":
+            selected_ids = request.form.getlist("selected_ids")
+            for id in selected_ids:
+                data = Data.query.get(id)
+                if data:
+                    db.session.delete(data)
 
-        # チェックされた限だけ追加
-        for p in periods:
-            new = Data(
-                branch=branch,
-                date=date,
-                period=p,
-                time=PERIOD_TIMES.get(p, ""),
-                teacher=teacher,
-                status=status,
-                sub_teacher=sub_teacher,
-                note=note
-            )
-            db.session.add(new)
+            db.session.commit()
+            return redirect(f"/day/{date}")
 
-        db.session.commit()
-        return redirect(f"/day/{date}")
+        # 一括更新
+        if action == "bulk_update":
+            selected_ids = request.form.getlist("selected_ids")
+
+            bulk_teacher = request.form.get("bulk_teacher")
+            bulk_status = request.form.get("bulk_status")
+            bulk_sub_teacher = request.form.get("bulk_sub_teacher")
+            bulk_note = request.form.get("bulk_note")
+
+            for id in selected_ids:
+                data = Data.query.get(id)
+                if data:
+                    if bulk_teacher:
+                        data.teacher = bulk_teacher
+
+                    if bulk_status:
+                        data.status = bulk_status
+                        if bulk_status == "未定":
+                            data.sub_teacher = ""
+
+                    if bulk_status == "決定" and bulk_sub_teacher:
+                        data.sub_teacher = bulk_sub_teacher
+
+                    if bulk_note:
+                        data.note = bulk_note
+
+            db.session.commit()
+            return redirect(f"/day/{date}")
+
+        # 通常追加
+        if action == "add":
+            branch = request.form.get("branch")
+            teacher = request.form.get("teacher")
+            status = request.form.get("status")
+            sub_teacher = request.form.get("sub_teacher")
+            note = request.form.get("note")
+            periods = request.form.getlist("period")
+
+            if status != "決定":
+                sub_teacher = ""
+
+            for p in periods:
+                new = Data(
+                    branch=branch,
+                    date=date,
+                    period=p,
+                    time=PERIOD_TIMES.get(p, ""),
+                    teacher=teacher,
+                    status=status,
+                    sub_teacher=sub_teacher,
+                    note=note
+                )
+                db.session.add(new)
+
+            db.session.commit()
+            return redirect(f"/day/{date}")
 
     records = Data.query.filter_by(date=date).order_by(Data.period).all()
 
@@ -147,28 +189,6 @@ def day(date):
         records_by_period=records_by_period,
         records=records
     )
-
-
-# ---------------- 編集画面 ----------------
-@app.route("/edit/<int:id>", methods=["GET", "POST"])
-def edit(id):
-    data = Data.query.get_or_404(id)
-
-    if request.method == "POST":
-        data.branch = request.form.get("branch")
-        data.teacher = request.form.get("teacher")
-        data.status = request.form.get("status")
-        data.sub_teacher = request.form.get("sub_teacher")
-        data.note = request.form.get("note")
-
-        if data.status != "決定":
-            data.sub_teacher = ""
-
-        db.session.commit()
-        return redirect(f"/day/{data.date}")
-
-    return render_template("edit.html", data=data)
-
 
 # ---------------- 削除 ----------------
 @app.route("/delete/<int:id>")

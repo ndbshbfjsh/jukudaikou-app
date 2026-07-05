@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-2">
         <a href="/" class="btn btn-outline-secondary">＜ 戻る</a>
         <h3 class="m-0">{{ date }}</h3>
-        <button type="submit" class="btn btn-primary">保存</button>
+        <button type="submit" name="action" value="add" class="btn btn-primary">保存</button>
     </div>
 
     <table class="lesson-table mb-3">
@@ -23,7 +23,7 @@
         <tr>
             <th>先生名</th>
             <td colspan="3">
-                <input type="text" name="teacher" class="form-control" required placeholder="先生名">
+                <input type="text" name="teacher" class="form-control" placeholder="先生名">
             </td>
         </tr>
 
@@ -43,12 +43,50 @@
         </tr>
     </table>
 
+    <div class="card p-3 mb-3">
+        <h5>選択したデータを一括操作</h5>
+
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="bulk_teacher" class="form-control" placeholder="先生名を変更">
+            </div>
+
+            <div class="col-md-3">
+                <select name="bulk_status" class="form-select">
+                    <option value="">状態変更なし</option>
+                    <option value="未定">未定にする</option>
+                    <option value="決定">決定にする</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" name="bulk_sub_teacher" class="form-control" placeholder="代講先生名">
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" name="bulk_note" class="form-control" placeholder="備考を変更">
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" name="action" value="bulk_update" class="btn btn-warning w-50">
+                選択したものを一括更新
+            </button>
+
+            <button type="submit" name="action" value="bulk_delete"
+                    onclick="return confirm('選択したデータをまとめて削除しますか？')"
+                    class="btn btn-danger w-50">
+                選択したものを一括削除
+            </button>
+        </div>
+    </div>
+
     <table class="lesson-table">
         <thead>
             <tr>
                 <th style="width: 45%;">授業時間A ＋</th>
-                <th style="width: 25%;">時間合計(分)</th>
-                <th style="width: 30%;">代講</th>
+                <th style="width: 20%;">時間合計(分)</th>
+                <th style="width: 35%;">代講</th>
             </tr>
         </thead>
 
@@ -71,29 +109,35 @@
                     {% if records_by_period[p] %}
                         {% for r in records_by_period[p] %}
                             <div class="record-box">
-                                <div>
-                                    <strong>{{ r.teacher }}</strong>
-                                    ／ {{ r.status }}
-                                </div>
+                                <label class="d-flex gap-2 align-items-start">
+                                    <input type="checkbox" name="selected_ids" value="{{ r.id }}" class="small-check">
 
-                                {% if r.status == "決定" and r.sub_teacher %}
-                                    <div class="text-danger">
-                                        代講：{{ r.sub_teacher }}
-                                    </div>
-                                {% endif %}
-
-                                {% if r.note %}
                                     <div>
-                                        メモ：{{ r.note }}
-                                    </div>
-                                {% endif %}
+                                        <div>
+                                            <strong>{{ r.teacher }}</strong>
+                                            ／ {{ r.status }}
+                                        </div>
 
-                                <div class="mt-1">
-                                    <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
-                                    <a href="/delete/{{ r.id }}"
-                                       onclick="return confirm('削除しますか？')"
-                                       class="btn btn-sm btn-danger">削除</a>
-                                </div>
+                                        {% if r.status == "決定" and r.sub_teacher %}
+                                            <div class="text-danger">
+                                                代講：{{ r.sub_teacher }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% if r.note %}
+                                            <div>
+                                                メモ：{{ r.note }}
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="mt-1">
+                                            <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
+                                            <a href="/delete/{{ r.id }}"
+                                               onclick="return confirm('削除しますか？')"
+                                               class="btn btn-sm btn-danger">削除</a>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         {% endfor %}
                     {% endif %}
@@ -108,7 +152,7 @@
     </div>
 
     <div class="fixed-save">
-        <button type="submit" class="btn btn-primary w-100">保存</button>
+        <button type="submit" name="action" value="add" class="btn btn-primary w-100">保存</button>
     </div>
 
 </form>
