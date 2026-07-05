@@ -77,13 +77,15 @@ def index():
         year += 1
 
     cal = calendar.monthcalendar(year, month)
-    atart_date = f"{yaer:04d}-{month:02d}-01"
-    last_day = calendar.monthranger(yaer, month)[1]
-    end_date = f"{yaer:04d}-{month:02d}-{last_day:02d}"
 
-    # その月の代講件数
-    records =Data.query.filter(Data.date >= atart_date,Data.date <= end_date).all
-    count_by_date = {}
+    start_date = f"{year:04d}-{month:02d}-01"
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = f"{year:04d}-{month:02d}-{last_day:02d}"
+
+    records = Data.query.filter(
+        Data.date >= start_date,
+        Data.date <= end_date
+    ).all()
 
     teacher_status_by_date = defaultdict(dict)
 
@@ -91,28 +93,37 @@ def index():
         if not r.teacher:
             continue
 
-    
         teacher_status_by_date[r.date][r.teacher] = r.status
 
+    count_by_date = {}
+
     for date_key, teachers in teacher_status_by_date.items():
-         blue = 0
-         red = 0
-         yellow = 0
-   
+        blue = 0
+        red = 0
+        yellow = 0
 
-    for teacher, status in teachers.items():
-        if status == "決定":
-            blue += 1
-        elif status == "未定":
-            red += 1
-        else:
-            yellow += 1
+        for teacher, status in teachers.items():
+            if status == "決定":
+                blue += 1
+            elif status == "未定":
+                red += 1
+            else:
+                yellow += 1
 
-    count_by_date[date_key] = {
-        "blue": blue,
-        "red": red,
-        "yellow": yellow
-    }
+        count_by_date[date_key] = {
+            "blue": blue,
+            "red": red,
+            "yellow": yellow
+        }
+
+    return render_template(
+        "index.html",
+        year=year,
+        month=month,
+        cal=cal,
+        count_by_date=count_by_date,
+        today=today.strftime("%Y-%m-%d")
+    )
 
 # ---------------- 日付を押した後の入力画面 ----------------
 @app.route("/day/<date>", methods=["GET", "POST"])
