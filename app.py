@@ -89,11 +89,10 @@ def index():
 
     for r in records:
         if not r.teacher:
-        continue
+            continue
 
     
-
-    teacher_status_by_date[r.date][r.teacher] = r.status
+        teacher_status_by_date[r.date][r.teacher] = r.status
 
     for date_key, teachers in teacher_status_by_date.items():
          blue = 0
