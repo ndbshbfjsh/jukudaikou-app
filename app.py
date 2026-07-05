@@ -179,7 +179,7 @@ def index():
 # ---------------- 日付を押した後の入力画面 ----------------
 @app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
-    period_time = get_period_times(date)
+    period_times = get_period_times(date)
     if request.method == "POST":
         action = request.form.get("action")
 
