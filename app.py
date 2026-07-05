@@ -268,7 +268,7 @@ def day(date):
                 db.session.add(new)
 
             db.session.commit()
-            fiash("代講を追加しました")
+            flash("代講を追加しました")
             return redirect(f"/day/{date}")
 
     records = Data.query.filter_by(date=date).order_by(Data.period).all()
