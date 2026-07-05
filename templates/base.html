@@ -49,8 +49,10 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function enablePush() {
+    alert("通知ON開始");
+
     if (!("serviceWorker" in navigator)) {
-        alert("この端末は通知に対応していません");
+        alert("この端末はService Workerに対応していません");
         return;
     }
 
@@ -60,6 +62,7 @@ async function enablePush() {
     }
 
     const permission = await Notification.requestPermission();
+    alert("通知許可状態：" + permission);
 
     if (permission !== "granted") {
         alert("通知が許可されませんでした");
@@ -67,19 +70,24 @@ async function enablePush() {
     }
 
     const registration = await navigator.serviceWorker.register("/static/service-worker.js");
+    alert("Service Worker登録OK");
 
     const keyRes = await fetch("/vapid_public_key");
     const keyData = await keyRes.json();
+    alert("公開キー取得OK");
 
-    if (!keyData.publicKey) {
-        alert("VAPID_PUBLIC_KEYが設定されていません");
-        return;
+    const oldSub = await registration.pushManager.getSubscription();
+    if (oldSub) {
+        await oldSub.unsubscribe();
+        alert("古い通知登録を削除しました");
     }
 
     const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
     });
+
+    alert("通知登録作成OK");
 
     await fetch("/subscribe", {
         method: "POST",
