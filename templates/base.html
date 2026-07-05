@@ -216,7 +216,7 @@ function requestNotificationPermission() {
 
     Notification.requestPermission().then(function(permission) {
         if (permission === "granted") {
-            alert("通知をONにしました");
+            alert("通知をONにしました！");
         } else {
             alert("通知が許可されませんでした");
         }
@@ -224,15 +224,36 @@ function requestNotificationPermission() {
 }
 
 function showNotification(title, body) {
-    if (!("Notification" in window)) return;
-
-    if (Notification.permission === "granted") {
-        new Notification(title, {
-            body: body,
-            icon: "/static/icon-192.png"
-        });
+    if (!("Notification" in window)) {
+        return;
     }
+
+    if (Notification.permission !== "granted") {
+        return;
+    }
+
+    navigator.serviceWorker.ready.then(function(registration) {
+        registration.showNotification(title, {
+            body: body,
+            icon: "/static/icon-192.png",
+            badge: "/static/icon-192.png",
+            vibrate: [200, 100, 200]
+        });
+    });
 }
+</script>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <script>
+        window.addEventListener("DOMContentLoaded", function () {
+            {% for message in messages %}
+            showNotification("塾代講管理", "{{ message }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+{% endwith %}
 </script>
 </body>
 </html>
