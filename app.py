@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, send_file, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
@@ -46,8 +46,14 @@ class Data(db.Model):
 
 class PushSubscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True)
     endpoint = db.Column(db.Text, unique=True)
     subscription_json = db.Column(db.Text)
+
+
+class NotificationLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True)
 
 
 with app.app_context():
@@ -166,7 +172,34 @@ def send_push_notification(title, body):
 
         except Exception as e:
             print("PUSH ERROR:", repr(e))
+JST = timezone(timedelta(hours=9))
 
+def notify_today_pending():
+    today = datetime.now(JST).strftime("%Y-%m-%d")
+    log_key = f"today_pending_{today}"
+
+    if NotificationLog.query.filter_by(key=log_key).first():
+        return
+
+    records = Data.query.filter_by(date=today, status="未定").all()
+
+    if not records:
+        return
+
+    lines = []
+    for r in records:
+        lines.append(f"{r.period}限　担当：{r.teacher}")
+
+    body = f"{today}\n未定の代講があります\n" + "\n".join(lines)
+
+    send_push_notification(
+        "⚠️ 本日まだ未定の代講があります",
+        body
+    )
+
+    log = NotificationLog(key=log_key)
+    db.session.add(log)
+    db.session.commit()
 
 @app.route("/vapid_public_key")
 def vapid_public_key():
@@ -194,6 +227,7 @@ def subscribe():
 
 @app.route("/")
 def index():
+    notify_today_pending
     year = request.args.get("year", type=int)
     month = request.args.get("month", type=int)
 
@@ -327,8 +361,8 @@ def day(date):
         db.session.commit()
 
         send_push_notification(
-            "塾代講管理",
-            f"{date} に代講が追加されました\n担当：{teacher}\n状態：{status}"
+            "📢 新しい代講が登録されました",
+            f"{date}\n担当：{teacher}\n状態：{status}"
         )
 
         return redirect(f"/day/{date}")
