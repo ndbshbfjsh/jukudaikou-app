@@ -3,198 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>代講管理</title>
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#0d6efd"
+    <title>塾代講管理</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
 
     <script>
-        (function () {
-            const savedTheme = localStorage.getItem("theme");
-            document.documentElement.setAttribute(
-                "data-bs-theme",
-                savedTheme ? savedTheme : "light"
-            );
-        })();
+        const savedTheme = localStorage.getItem("theme");
+        document.documentElement.setAttribute(
+            "data-bs-theme",
+            savedTheme ? savedTheme : "light"
+        );
     </script>
-
-    <style>
-        body {
-            background: #f5f5f5;
-        }
-
-        .main-wrap {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .top-btn {
-            text-align: right;
-            margin-bottom: 10px;
-        }
-
-        .calendar-title {
-            font-size: 32px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .calendar-table {
-            width: 100%;
-            table-layout: fixed;
-            background: white;
-            border-collapse: collapse;
-        }
-
-        .calendar-table th,
-        .calendar-table td {
-            border: 1px solid #ddd;
-            height: 95px;
-            vertical-align: top;
-            padding: 6px;
-            font-size: 22px;
-        }
-
-        .calendar-table th {
-            text-align: center;
-            background: #eee;
-        }
-
-        .sun {
-            background: #ffcaca !important;
-        }
-
-        .sat {
-            background: #8ed0ff !important;
-        }
-
-        .day-link {
-            display: block;
-            width: 100%;
-            height: 100%;
-            text-decoration: none;
-            color: #222;
-        }
-
-        .other-month {
-            color: #bbb;
-            background: #f3f3f3;
-        }
-
-        .today-cell {
-            background: #fff8d8 !important;
-        }
-
-        .count-badge {
-            display: inline-block;
-            background: #0d6efd;
-            color: white;
-            border-radius: 5px;
-            font-size: 13px;
-            padding: 2px 6px;
-            margin-top: 10px;
-        }
-
-        .lesson-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        .lesson-table th,
-        .lesson-table td {
-            border: 1px solid #ddd;
-            padding: 12px 8px;
-            vertical-align: middle;
-        }
-
-        .lesson-table th {
-            background: #eee;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .period-name {
-            white-space: nowrap;
-            font-size: 20px;
-        }
-
-        .lesson-time {
-            font-size: 20px;
-            white-space: nowrap;
-        }
-
-        .small-check {
-            width: 22px;
-            height: 22px;
-        }
-
-        .record-box {
-            font-size: 14px;
-            margin-bottom: 6px;
-            padding: 6px;
-            border-radius: 6px;
-            background: #f8f9fa;
-        }
-
-        .fixed-save {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-        }
-
-        @media (max-width: 767px) {
-            .calendar-title {
-                font-size: 28px;
-            }
-
-            .calendar-table th,
-            .calendar-table td {
-                height: 86px;
-                font-size: 20px;
-                padding: 5px;
-            }
-
-            .lesson-table th {
-                font-size: 15px;
-            }
-
-            .lesson-table td {
-                padding: 10px 5px;
-            }
-
-            .period-name,
-            .lesson-time {
-                font-size: 17px;
-            }
-        }
-    </style>
 </head>
 
 <body class="p-2">
 
-<div class="top-btn">
-    <button onclick="requestNotificationPermission()" class="btn btn-sm btn-primary">🔔　通知オン</button>
+<div class="text-end mb-2">
+    <button onclick="enablePush()" class="btn btn-sm btn-primary">🔔 通知ON</button>
     <button onclick="toggleTheme()" class="btn btn-sm btn-dark">🌙 ダークモード切替</button>
 </div>
 
-<div class="main-wrap">
-    {% block content %}{% endblock %}
-</div>
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <script>
-            window.addEventListener("DOMContentLoaded", function() {
-                {% for message in messages %}
-                    showNotification("代講管理", "{{ message }}");
-                {% endfor %}
-            });
-        </script>
-    {% endif %}
-{% endwith %}
+{% block content %}{% endblock %}
+
 <script>
 function toggleTheme() {
     const current = document.documentElement.getAttribute("data-bs-theme");
@@ -202,55 +34,68 @@ function toggleTheme() {
     document.documentElement.setAttribute("data-bs-theme", newTheme);
     localStorage.setItem("theme", newTheme);
 }
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/static/service-worker.js");
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+
+    return outputArray;
 }
 
-function requestNotificationPermission() {
-    if (!("Notification" in window)) {
+async function enablePush() {
+    if (!("serviceWorker" in navigator)) {
         alert("この端末は通知に対応していません");
         return;
     }
 
-    Notification.requestPermission().then(function(permission) {
-        alert("通知の状態：" + permission);
+    if (!("PushManager" in window)) {
+        alert("このブラウザはPush通知に対応していません");
+        return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+        alert("通知が許可されませんでした");
+        return;
+    }
+
+    const registration = await navigator.serviceWorker.register("/static/service-worker.js");
+
+    const keyRes = await fetch("/vapid_public_key");
+    const keyData = await keyRes.json();
+
+    if (!keyData.publicKey) {
+        alert("VAPID_PUBLIC_KEYが設定されていません");
+        return;
+    }
+
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
     });
+
+    await fetch("/subscribe", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(subscription)
+    });
+
+    alert("スマホ通知をONにしました");
 }
 
-function showNotification(title, body) {
-    alert("通知テスト：" + body);
-
-    if (!("Notification" in window)) {
-        alert("通知に対応していません");
-        return;
-    }
-
-    if (Notification.permission !== "granted") {
-        alert("通知が許可されていません。通知ONを押してください。");
-        return;
-    }
-
-    navigator.serviceWorker.ready.then(function(registration) {
-        registration.showNotification(title, {
-            body: body,
-            icon: "/static/icon-192.png"
-        });
-    });
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/service-worker.js");
 }
 </script>
 
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <script>
-            window.addEventListener("DOMContentLoaded", function() {
-                {% for message in messages %}
-                    showNotification("塾代講管理", "{{ message }}");
-                {% endfor %}
-            });
-        </script>
-    {% endif %}
-{% endwith %}
 </body>
 </html>

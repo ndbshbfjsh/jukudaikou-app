@@ -1,74 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h3 class="text-center mb-4">代講編集</h3>
-
-<form method="POST" class="card p-3">
+<div class="container" style="max-width:600px;">
 
     <div class="mb-3">
-        <label class="form-label">日付</label>
-        <input type="text" class="form-control" value="{{ data.date }}" readonly>
+        <a href="/day/{{ data.date }}" class="btn btn-secondary">← 戻る</a>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">校舎</label>
-        <select name="branch" class="form-select">
-            <option value="豊中校" {% if data.branch == "豊中校" %}selected{% endif %}>豊中校</option>
-            <option value="その他" {% if data.branch == "その他" %}selected{% endif %}>その他</option>
-        </select>
-    </div>
+    <h2 class="text-center mb-4">代講編集</h2>
 
-    <div class="mb-3">
-        <label class="form-label">限</label>
-        <input type="text" class="form-control" value="{{ data.period }}限　{{ data.time }}" readonly>
-    </div>
+    <form method="POST">
 
-    <div class="mb-3">
-        <label class="form-label">先生名</label>
-        <input type="text" name="teacher" class="form-control" value="{{ data.teacher }}" required>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">日付</label>
+            <input type="text" class="form-control" value="{{ data.date }}" readonly>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">状態</label>
-        <select name="status" class="form-select" onchange="toggleSubTeacher(this)">
-            <option value="未定" {% if data.status == "未定" %}selected{% endif %}>未定</option>
-            <option value="決定" {% if data.status == "決定" %}selected{% endif %}>決定</option>
-        </select>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">限</label>
+            <input type="text" class="form-control" value="{{ period_times.get(data.period, data.period) }}" readonly>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">代講先生</label>
-        <input type="text" name="sub_teacher" id="subTeacherInput" class="form-control" value="{{ data.sub_teacher }}">
-    </div>
+        <div class="mb-3">
+            <label class="form-label">担当先生</label>
+            <input type="text" name="teacher" class="form-control" value="{{ data.teacher or '' }}">
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">備考</label>
-        <textarea name="note" class="form-control" rows="4">{{ data.note }}</textarea>
-    </div>
+        <div class="mb-3">
+            <label class="form-label">状態</label>
+            <select name="status" class="form-select" onchange="toggleSubTeacher(this)">
+                <option value="未定" {% if data.status == "未定" %}selected{% endif %}>未定</option>
+                <option value="決定" {% if data.status == "決定" %}selected{% endif %}>決定</option>
+            </select>
+        </div>
 
-    <button type="submit" class="btn btn-primary w-100 mb-2">更新</button>
+        <div class="mb-3" id="subTeacherField" {% if data.status != "決定" %}style="display:none;"{% endif %}>
+            <label class="form-label">代講先生</label>
+            <input type="text" name="sub_teacher" class="form-control" value="{{ data.sub_teacher or '' }}">
+        </div>
 
-    <a href="/day/{{ data.date }}" class="btn btn-secondary w-100">戻る</a>
+        <div class="mb-3">
+            <label class="form-label">メモ</label>
+            <textarea name="note" class="form-control">{{ data.note or '' }}</textarea>
+        </div>
 
-</form>
+        <button type="submit" class="btn btn-primary w-100">更新</button>
+
+    </form>
+</div>
 
 <script>
 function toggleSubTeacher(select) {
-    const input = document.getElementById("subTeacherInput");
-    if (select.value === "決定") {
-        input.disabled = false;
-        input.style.background = "white";
-    } else {
-        input.value = "";
-        input.disabled = true;
-        input.style.background = "#eee";
-    }
+    const field = document.getElementById("subTeacherField");
+    field.style.display = select.value === "決定" ? "block" : "none";
 }
-
-window.addEventListener("DOMContentLoaded", function () {
-    const select = document.querySelector('select[name="status"]');
-    toggleSubTeacher(select);
-});
 </script>
 
 {% endblock %}

@@ -1,179 +1,202 @@
 {% extends "base.html" %}
 {% block content %}
 
-<form method="POST">
+<style>
+.day-wrap {
+    max-width: 1100px;
+    margin: auto;
+}
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <a href="/" class="btn btn-outline-secondary">＜ 戻る</a>
-        <h3 class="m-0">{{ date }}</h3>
-        <button type="submit" name="action" value="add" class="btn btn-primary">保存</button>
+.top-date-box {
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    padding: 12px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.lesson-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lesson-table th,
+.lesson-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.lesson-table th {
+    background: #f1f1f1;
+    text-align: center;
+    font-size: 18px;
+}
+
+.period-cell {
+    font-size: 20px;
+    white-space: nowrap;
+}
+
+.lesson-check {
+    width: 28px;
+    height: 28px;
+}
+
+.record-box {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.status-kettei {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.status-mitei {
+    color: #dc3545;
+    font-weight: bold;
+}
+</style>
+
+<div class="day-wrap">
+
+    <div class="mb-3">
+        <a href="/" class="btn btn-secondary">← カレンダーに戻る</a>
     </div>
 
-    <table class="lesson-table mb-3">
-        <tr>
-            <th style="width: 85px;">校舎</th>
-            <td colspan="3">
-                <select name="branch" class="form-select">
-                    <option value="豊中校">豊中校</option>
-                    <option value="その他">その他</option>
-                </select>
-            </td>
-        </tr>
+    <div class="top-date-box mb-3">
+        日付　{{ date }}
+    </div>
 
-        <tr>
-            <th>先生名</th>
-            <td colspan="3">
-                <input type="text" name="teacher" class="form-control" placeholder="先生名">
-            </td>
-        </tr>
+    <form method="POST">
 
-        <tr>
-            <th>状態</th>
-            <td>
+        <div class="mb-3">
+            <label class="form-label">校舎</label>
+            <select name="branch" class="form-select">
+                <option value="豊中校">豊中校</option>
+                <option value="その他">その他</option>
+            </select>
+        </div>
+
+        <table class="lesson-table mb-3">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>授業時間</th>
+                    <th>時間合計(分)</th>
+                    <th>代講</th>
+                    <th>編集</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for key, label in period_times.items() %}
+                <tr>
+                    <td class="text-center">
+                        <input type="checkbox" name="period" value="{{ key }}" class="lesson-check">
+                    </td>
+
+                    <td class="period-cell">
+                        {{ label }}
+                    </td>
+
+                    <td class="text-center">
+                        {{ calc_minutes(label) }}
+                    </td>
+
+                    <td>
+                        {% for r in records_by_period.get(key, []) %}
+                            <div class="record-box">
+                                {{ r.teacher }}
+                                ／
+                                {% if r.status == "決定" %}
+                                    <span class="status-kettei">決定</span>
+                                    {% if r.sub_teacher %}
+                                        → {{ r.sub_teacher }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="status-mitei">未定</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </td>
+
+                    <td>
+                        {% for r in records_by_period.get(key, []) %}
+                            <div class="mb-1">
+                                <input type="checkbox" name="selected_ids" value="{{ r.id }}">
+                                <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
+                                <a href="/delete/{{ r.id }}" onclick="return confirm('削除しますか？')" class="btn btn-sm btn-danger">削除</a>
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="card p-3 mb-3">
+            <h5>新規追加</h5>
+
+            <div class="mb-3">
+                <label class="form-label">担当先生</label>
+                <input type="text" name="teacher" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">状態</label>
                 <select name="status" class="form-select" onchange="toggleSubTeacher(this)">
                     <option value="未定">未定</option>
                     <option value="決定">決定</option>
                 </select>
-            </td>
-
-            <th>代講先生</th>
-            <td>
-                <input type="text" name="sub_teacher" id="subTeacherInput" class="form-control" placeholder="決定時だけ入力">
-            </td>
-        </tr>
-    </table>
-
-    <div class="card p-3 mb-3">
-        <h5>選択したデータを一括操作</h5>
-
-        <div class="row g-2">
-            <div class="col-md-3">
-                <input type="text" name="bulk_teacher" class="form-control" placeholder="先生名を変更">
             </div>
 
-            <div class="col-md-3">
-                <select name="bulk_status" class="form-select">
-                    <option value="">状態変更なし</option>
-                    <option value="未定">未定にする</option>
-                    <option value="決定">決定にする</option>
-                </select>
+            <div class="mb-3" id="subTeacherField" style="display:none;">
+                <label class="form-label">代講先生</label>
+                <input type="text" name="sub_teacher" class="form-control">
             </div>
 
-            <div class="col-md-3">
-                <input type="text" name="bulk_sub_teacher" class="form-control" placeholder="代講先生名">
+            <div class="mb-3">
+                <label class="form-label">メモ</label>
+                <textarea name="note" class="form-control"></textarea>
             </div>
 
-            <div class="col-md-3">
-                <input type="text" name="bulk_note" class="form-control" placeholder="備考を変更">
-            </div>
+            <button type="submit" class="btn btn-primary w-100">保存</button>
         </div>
 
-        <div class="d-flex gap-2 mt-3">
-            <button type="submit" name="action" value="bulk_update" class="btn btn-warning w-50">
+        <div class="card p-3 mb-3">
+            <h5>選択したデータを一括更新</h5>
+
+            <input type="text" name="bulk_teacher" class="form-control mb-2" placeholder="担当先生を変更">
+
+            <select name="bulk_status" class="form-select mb-2">
+                <option value="">状態は変更しない</option>
+                <option value="未定">未定</option>
+                <option value="決定">決定</option>
+            </select>
+
+            <input type="text" name="bulk_sub_teacher" class="form-control mb-2" placeholder="代講先生を変更">
+            <input type="text" name="bulk_note" class="form-control mb-2" placeholder="メモを変更">
+
+            <button type="submit" name="action" value="bulk_update" class="btn btn-warning w-100 mb-2">
                 選択したものを一括更新
             </button>
 
-            <button type="submit" name="action" value="bulk_delete"
-                    onclick="return confirm('選択したデータをまとめて削除しますか？')"
-                    class="btn btn-danger w-50">
+            <button type="submit" name="action" value="bulk_delete" onclick="return confirm('選択したデータを削除しますか？')" class="btn btn-danger w-100">
                 選択したものを一括削除
             </button>
         </div>
-    </div>
 
-    <table class="lesson-table">
-        <thead>
-            <tr>
-                <th style="width: 45%;">授業時間A ＋</th>
-                <th style="width: 20%;">時間合計(分)</th>
-                <th style="width: 35%;">代講</th>
-            </tr>
-        </thead>
+    </form>
 
-        <tbody>
-            {% for p, t in period_times.items() %}
-            <tr>
-                <td>
-                    <label class="d-flex align-items-center gap-2">
-                        <input type="checkbox" name="period" value="{{ p }}" class="small-check">
-                        <span class="period-name">{{ p }}限</span>
-                        <span class="lesson-time">{{ t }}</span>
-                    </label>
-                </td>
-
-                <td class="text-center">
-                    {{ calc_minutes(t) }}
-                </td>
-
-                <td>
-                    {% if records_by_period[p] %}
-                        {% for r in records_by_period[p] %}
-                            <div class="record-box">
-                                <label class="d-flex gap-2 align-items-start">
-                                    <input type="checkbox" name="selected_ids" value="{{ r.id }}" class="small-check">
-
-                                    <div>
-                                        <div>
-                                            <strong>{{ r.teacher }}</strong>
-                                            ／ {{ r.status }}
-                                        </div>
-
-                                        {% if r.status == "決定" and r.sub_teacher %}
-                                            <div class="text-danger">
-                                                代講：{{ r.sub_teacher }}
-                                            </div>
-                                        {% endif %}
-
-                                        {% if r.note %}
-                                            <div>
-                                                メモ：{{ r.note }}
-                                            </div>
-                                        {% endif %}
-
-                                        <div class="mt-1">
-                                            <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
-                                            <a href="/delete/{{ r.id }}"
-                                               onclick="return confirm('削除しますか？')"
-                                               class="btn btn-sm btn-danger">削除</a>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="mt-3">
-        <textarea name="note" class="form-control" rows="4" placeholder="メモ（任意）・・・"></textarea>
-    </div>
-
-    <div class="fixed-save">
-        <button type="submit" name="action" value="add" class="btn btn-primary w-100">保存</button>
-    </div>
-
-</form>
+</div>
 
 <script>
 function toggleSubTeacher(select) {
-    const input = document.getElementById("subTeacherInput");
-    if (select.value === "決定") {
-        input.disabled = false;
-        input.style.background = "white";
-    } else {
-        input.value = "";
-        input.disabled = true;
-        input.style.background = "#eee";
-    }
+    const field = document.getElementById("subTeacherField");
+    field.style.display = select.value === "決定" ? "block" : "none";
 }
-
-window.addEventListener("DOMContentLoaded", function () {
-    const select = document.querySelector('select[name="status"]');
-    toggleSubTeacher(select);
-});
 </script>
 
 {% endblock %}
