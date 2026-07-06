@@ -334,7 +334,7 @@ def day(date):
                 if data:
                     db.session.delete(data)
             db.session.commit()
-            send_push_notification("塾代講管理", f"{date} の代講を削除しました")
+            
             return redirect(f"/day/{date}")
 
         if action == "bulk_update":
