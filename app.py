@@ -200,7 +200,16 @@ def send_push_notification(title, body):
         except Exception as e:
             print("PUSH ERROR:", repr(e))
 JST = timezone(timedelta(hours=9))
+def delete_old_records():
+    today = datetime.now(JST).date()
+    limit_date = today - timedelta(days=35)
 
+    old_records = Data.query.filter(Data.date < limit_date.strftime("%Y-%m-%d")).all()
+
+    for r in old_records:
+        db.session.delete(r)
+
+    db.session.commit()
 def notify_today_pending():
     today = datetime.now(JST).strftime("%Y-%m-%d")
     log_key = f"today_pending_{today}"
@@ -319,7 +328,10 @@ def index():
         today=today_dt.strftime("%Y-%m-%d")
     )
 
-
+@app.route("/")
+def index():
+    delete_old_records()
+    notify_today_pending()
 @app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
     period_times = get_period_times(date)
