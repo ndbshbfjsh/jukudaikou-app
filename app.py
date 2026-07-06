@@ -263,7 +263,8 @@ def subscribe():
 
 @app.route("/")
 def index():
-    notify_today_pending
+    delete_old_records()
+    notify_today_pending()
     year = request.args.get("year", type=int)
     month = request.args.get("month", type=int)
 
@@ -328,10 +329,7 @@ def index():
         today=today_dt.strftime("%Y-%m-%d")
     )
 
-@app.route("/")
-def index():
-    delete_old_records()
-    notify_today_pending()
+
 @app.route("/day/<date>", methods=["GET", "POST"])
 def day(date):
     period_times = get_period_times(date)
