@@ -416,8 +416,10 @@ def day(date):
         period_times=period_times,
         records_by_period=records_by_period,
         records=records,
-        calc_minutes=calc_minutes
-    )
+        calc_minutes=calc_minutes,
+        year=int(date[:4]),
+        month=int(date[5:7])
+)
 
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
