@@ -3,49 +3,52 @@
 
 <style>
 .day-wrap {
-    max-width: 1100px;
+    max-width: 900px;
     margin: auto;
 }
 
-.top-date-box {
-    border: 1px solid #ddd;
-    background: #f8f9fa;
-    padding: 12px;
-    font-size: 24px;
+.date-title {
+    font-size: 26px;
     font-weight: bold;
-}
-
-.lesson-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.lesson-table th,
-.lesson-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    vertical-align: middle;
-}
-
-.lesson-table th {
-    background: #f1f1f1;
     text-align: center;
-    font-size: 18px;
+    margin: 15px 0;
 }
 
-.period-cell {
-    font-size: 20px;
-    white-space: nowrap;
+.period-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+
+.period-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .lesson-check {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+}
+
+.period-label {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.minute-text {
+    color: #666;
+    font-size: 14px;
+    margin-top: 4px;
 }
 
 .record-box {
-    font-size: 14px;
-    margin-bottom: 6px;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
 }
 
 .status-kettei {
@@ -57,6 +60,23 @@
     color: #dc3545;
     font-weight: bold;
 }
+
+.action-row {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-row .btn {
+    flex: 1;
+}
+
+@media (min-width: 768px) {
+    .period-card {
+        padding: 18px;
+    }
+}
 </style>
 
 <div class="day-wrap">
@@ -65,9 +85,7 @@
         <a href="/" class="btn btn-secondary">← カレンダーに戻る</a>
     </div>
 
-    <div class="top-date-box mb-3">
-        日付　{{ date }}
-    </div>
+    <div class="date-title">{{ date }}</div>
 
     <form method="POST">
 
@@ -79,62 +97,49 @@
             </select>
         </div>
 
-        <table class="lesson-table mb-3">
-            <thead>
-                <tr>
-                    <th>選択</th>
-                    <th>授業時間</th>
-                    <th>時間合計(分)</th>
-                    <th>代講</th>
-                    <th>編集</th>
-                </tr>
-            </thead>
+        {% for key, label in period_times.items() %}
+        <div class="period-card">
 
-            <tbody>
-                {% for key, label in period_times.items() %}
-                <tr>
-                    <td class="text-center">
-                        <input type="checkbox" name="period" value="{{ key }}" class="lesson-check">
-                    </td>
+            <div class="period-top">
+                <input type="checkbox" name="period" value="{{ key }}" class="lesson-check">
+                <div>
+                    <div class="period-label">{{ label }}</div>
+                    <div class="minute-text">時間合計：{{ calc_minutes(label) }}分</div>
+                </div>
+            </div>
 
-                    <td class="period-cell">
-                        {{ label }}
-                    </td>
+            {% for r in records_by_period.get(key, []) %}
+            <div class="record-box">
+                <div>
+                    担当：{{ r.teacher }}
+                </div>
 
-                    <td class="text-center">
-                        {{ calc_minutes(label) }}
-                    </td>
+                <div>
+                    状態：
+                    {% if r.status == "決定" %}
+                        <span class="status-kettei">決定</span>
+                        {% if r.sub_teacher %}
+                            → {{ r.sub_teacher }}
+                        {% endif %}
+                    {% else %}
+                        <span class="status-mitei">未定</span>
+                    {% endif %}
+                </div>
 
-                    <td>
-                        {% for r in records_by_period.get(key, []) %}
-                            <div class="record-box">
-                                {{ r.teacher }}
-                                ／
-                                {% if r.status == "決定" %}
-                                    <span class="status-kettei">決定</span>
-                                    {% if r.sub_teacher %}
-                                        → {{ r.sub_teacher }}
-                                    {% endif %}
-                                {% else %}
-                                    <span class="status-mitei">未定</span>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </td>
+                {% if r.note %}
+                <div>メモ：{{ r.note }}</div>
+                {% endif %}
 
-                    <td>
-                        {% for r in records_by_period.get(key, []) %}
-                            <div class="mb-1">
-                                <input type="checkbox" name="selected_ids" value="{{ r.id }}">
-                                <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
-                                <a href="/delete/{{ r.id }}" onclick="return confirm('削除しますか？')" class="btn btn-sm btn-danger">削除</a>
-                            </div>
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                <div class="action-row">
+                    <input type="checkbox" name="selected_ids" value="{{ r.id }}">
+                    <a href="/edit/{{ r.id }}" class="btn btn-sm btn-primary">編集</a>
+                    <a href="/delete/{{ r.id }}" onclick="return confirm('削除しますか？')" class="btn btn-sm btn-danger">削除</a>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+        {% endfor %}
 
         <div class="card p-3 mb-3">
             <h5>新規追加</h5>
@@ -189,7 +194,6 @@
         </div>
 
     </form>
-
 </div>
 
 <script>
