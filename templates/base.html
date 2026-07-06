@@ -50,14 +50,25 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-async function enablePush() {
+window.enablePush = async function () {
+    alert("通知ON開始");
+
     try {
-        alert("通知ON開始");
+        if (!("serviceWorker" in navigator)) {
+            alert("Service Worker未対応");
+            return;
+        }
+
+        if (!("PushManager" in window)) {
+            alert("Push通知未対応");
+            return;
+        }
 
         const permission = await Notification.requestPermission();
         alert("通知許可状態：" + permission);
 
         if (permission !== "granted") {
+            alert("通知が許可されませんでした");
             return;
         }
 
@@ -68,29 +79,16 @@ async function enablePush() {
         const keyData = await keyRes.json();
         alert("公開キー取得OK");
 
-        console.log("publicKey=", keyData.publicKey);
-
-        const oldSub = await registration.pushManager.getSubscription();
-        if (oldSub) {
-            await oldSub.unsubscribe();
-            alert("古い登録削除OK");
-        }
-
-        const appKey = urlBase64ToUint8Array(keyData.publicKey);
-        alert("キー変換OK");
-
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: appKey
+            applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
         });
 
         alert("通知登録作成OK");
 
         await fetch("/subscribe", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(subscription)
         });
 
@@ -98,7 +96,6 @@ async function enablePush() {
 
     } catch (e) {
         alert("通知登録エラー：" + e.message);
-        console.error(e);
     }
 }
 <script>
