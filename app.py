@@ -115,14 +115,35 @@ WEEKDAY_PERIOD_TIMES = {
     "6": "6限　18:45 ～ 20:05",
     "7": "7限　20:15 ～ 21:35",
 }
-
+SUMMER_PERIOD_TIMES = {
+    "1": "1限　9:30 ～ 10:50",
+    "2": "2限　11:00 ～ 12:20",
+    "3": "3限　13:30 ～ 14:50",
+    "4": "4限　15:00 ～ 16:20",
+    "5": "5限　16:30 ～ 17:50",
+    "6": "6限　18:05 ～ 19:25",
+    "7": "7限　19:35 ～ 20:55",
+}
 
 def get_period_times(date_str):
     d = datetime.strptime(date_str, "%Y-%m-%d")
+
+    summer_ranges = [
+        ("2026-07-26", "2026-07-30"),
+        ("2026-08-01", "2026-08-05"),
+        ("2026-08-17", "2026-08-21"),
+        ("2026-08-23", "2026-08-27"),
+    ]
+
+    for start, end in summer_ranges:
+        if start <= date_str <= end:
+            return SUMMER_PERIOD_TIMES
+
     if d.weekday() == 6:
         return SUNDAY_PERIOD_TIMES
     elif d.weekday() == 5:
         return SATURDAY_PERIOD_TIMES
+
     return WEEKDAY_PERIOD_TIMES
 
 
