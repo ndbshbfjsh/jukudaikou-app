@@ -64,20 +64,20 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 window.enablePush = async function () {
-    alert("通知ON開始");
+    
 
     try {
         const permission = await Notification.requestPermission();
-        alert("通知許可状態：" + permission);
+        
 
         if (permission !== "granted") return;
 
         const registration = await navigator.serviceWorker.register("/static/service-worker.js");
-        alert("Service Worker登録OK");
+        
 
         const keyRes = await fetch("/vapid_public_key");
         const keyData = await keyRes.json();
-        alert("公開キー取得OK");
+        
 
         const oldSub = await registration.pushManager.getSubscription();
         if (oldSub) {
@@ -89,7 +89,7 @@ window.enablePush = async function () {
             applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
         });
 
-        alert("通知登録作成OK");
+        
 
         await fetch("/subscribe", {
             method: "POST",
