@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-3 mb-5">
+
+    <h2 class="mb-4">📖 使い方</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>✏️ ① 代講の入れ方</h5>
+
+            <p>① カレンダーから代講を入れたい日付を押します。</p>
+            <p>② 限数にチェックを入れます。</p>
+            <p>③ 担当先生を入力します。</p>
+            <p>④ 状態を「未定」または「決定」から選びます。</p>
+            <p>⑤ 最後に保存を押すと登録されます。</p>
+
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>❓ ② 代講がまだ決まっていない場合</h5>
+
+            <p>状態を「未定」にしてください。</p>
+
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>✏️ ③ 代講が決まった時、入りたいときの編集方法</h5>
+
+            <p>① 一覧の「編集」を押します。</p>
+            <p>② 状態を「決定」に変更します。</p>
+            <p>③ 代講先生を入力します。</p>
+            <p>④ 保存を押して更新します。</p>
+
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>👥  一括編集・一括削除</h5>
+
+            <p>チェックを付けた代講をまとめて編集できます。</p>
+            <p>担当・状態・代講先生・メモをまとめて変更できます。</p>
+
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>🔔  通知について</h5>
+
+            <p>最初に一度だけ「通知ON」を押してください。</p>
+            <p>ボタンが青色なら通知を受け取れる状態です。</p>
+            <p>白色ならOFFなので押してONにしてください。</p>
+
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>⚠️  注意事項</h5>
+
+           
+            <p>翌月の１０日に前月のデータは自動削除されます。</p>
+
+        </div>
+    </div>
+
+    <a href="/" class="btn btn-secondary w-100">
+        カレンダーに戻る
+    </a>
+
+</div>
+
+{% endblock %}

@@ -524,3 +524,6 @@ def clear_subscriptions():
     return "subscriptions cleared"
 if __name__ == "__main__":
     app.run(debug=True)
+@app.route("/help")
+def help():
+    return render_template("help.html")
