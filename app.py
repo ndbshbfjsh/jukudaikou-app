@@ -202,9 +202,29 @@ def send_push_notification(title, body):
 JST = timezone(timedelta(hours=9))
 def delete_old_records():
     today = datetime.now(JST).date()
-    limit_date = today - timedelta(days=35)
 
-    old_records = Data.query.filter(Data.date < limit_date.strftime("%Y-%m-%d")).all()
+    # 毎月10日より前は削除しない
+    if today.day < 10:
+        return
+
+    # 前月を計算
+    if today.month == 1:
+        target_year = today.year - 1
+        target_month = 12
+    else:
+        target_year = today.year
+        target_month = today.month - 1
+
+    start_date = f"{target_year:04d}-{target_month:02d}-01"
+
+    # 前月の最終日
+    last_day = calendar.monthrange(target_year, target_month)[1]
+    end_date = f"{target_year:04d}-{target_month:02d}-{last_day:02d}"
+
+    old_records = Data.query.filter(
+        Data.date >= start_date,
+        Data.date <= end_date
+    ).all()
 
     for r in old_records:
         db.session.delete(r)
