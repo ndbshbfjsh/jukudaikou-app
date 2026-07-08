@@ -319,18 +319,21 @@ def index():
     end_date = f"{year:04d}-{month:02d}-{last_day:02d}"
 
     keyword = request.args.get("keyword", "").strip()
-    query = Data.query.filter(Data.date >= start_date, Data.date <= end_date)
+
+    query = Data.query.filter(
+        Data.date >= start_date,
+        Data.date <= end_date
+        )
 
     if keyword:
-    query = query.filter(
-        db.or_(
-            Data.teacher.contains(keyword),
-            Data.sub_teacher.contains(keyword),
-            Data.note.contains(keyword)
-        )
-    )
-
-records = query.all()
+        query = query.filter(
+            db.or_(
+                Data.teacher.contains(keyword),
+                Data.sub_teacher.contains(keyword),
+                Data.note.contains(keyword)
+                )
+                )
+    records = query.all()
     teacher_status_by_date = defaultdict(dict)
 
     for r in records:
