@@ -279,7 +279,18 @@ def subscribe():
         db.session.commit()
 
     return jsonify({"status": "ok"})
+@app.route("/unsubscribe", methods=["POST"])
+def unsubscribe():
+    data = request.get_json()
+    endpoint = data.get("endpoint")
 
+    sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
+
+    if sub:
+        db.session.delete(sub)
+        db.session.commit()
+
+    return jsonify({"status": "ok"})
 
 @app.route("/")
 def index():
