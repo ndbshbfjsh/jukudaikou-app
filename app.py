@@ -368,8 +368,8 @@ def index():
         month=month,
         cal=cal,
         count_by_date=count_by_date,
-        today=today_dt.strftime("%Y-%m-%d")
-        keyword=keyword
+        today=today_dt.strftime("%Y-%m-%d"),
+        keyword=keyword,
     )
 
 
