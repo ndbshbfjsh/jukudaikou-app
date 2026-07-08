@@ -28,26 +28,7 @@
 
 {% block content %}{% endblock %}
 
-<script>
-function toggleTheme() {
-    const current = document.documentElement.getAttribute("data-bs-theme");
-    const newTheme = current === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-bs-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-}
 
-function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-
-    return outputArray;
-}
 
 <script>
 function urlBase64ToUint8Array(base64String) {
@@ -55,15 +36,13 @@ function urlBase64ToUint8Array(base64String) {
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
     const rawData = atob(base64);
     const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
+    for (let i = 0; i < rawData.length; i++) {
         outputArray[i] = rawData.charCodeAt(i);
     }
-
     return outputArray;
 }
 
-async function setPushButton(isOn) {
+function setPushButton(isOn) {
     const btn = document.getElementById("pushBtn");
     if (!btn) return;
 
@@ -77,29 +56,19 @@ async function setPushButton(isOn) {
 }
 
 async function checkPushStatus() {
-    if (!("serviceWorker" in navigator)) {
-        await setPushButton(false);
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        setPushButton(false);
         return;
     }
 
     const registration = await navigator.serviceWorker.register("/static/service-worker.js");
     const subscription = await registration.pushManager.getSubscription();
 
-    await setPushButton(!!subscription);
+    setPushButton(!!subscription);
 }
 
 window.togglePush = async function () {
     try {
-        if (!("serviceWorker" in navigator)) {
-            alert("この端末は通知に対応していません");
-            return;
-        }
-
-        if (!("PushManager" in window)) {
-            alert("このブラウザは通知に対応していません");
-            return;
-        }
-
         const registration = await navigator.serviceWorker.register("/static/service-worker.js");
         let subscription = await registration.pushManager.getSubscription();
 
@@ -107,23 +76,19 @@ window.togglePush = async function () {
             await fetch("/unsubscribe", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    endpoint: subscription.endpoint
-                })
+                body: JSON.stringify({ endpoint: subscription.endpoint })
             });
 
             await subscription.unsubscribe();
-
-            await setPushButton(false);
+            setPushButton(false);
             alert("通知をOFFにしました");
             return;
         }
 
         const permission = await Notification.requestPermission();
-
         if (permission !== "granted") {
             alert("通知が許可されませんでした");
-            await setPushButton(false);
+            setPushButton(false);
             return;
         }
 
@@ -141,135 +106,15 @@ window.togglePush = async function () {
             body: JSON.stringify(subscription)
         });
 
-        await setPushButton(true);
+        setPushButton(true);
         alert("通知をONにしました");
 
     } catch (e) {
         alert("通知切替エラー：" + e.message);
-        console.error(e);
     }
 };
 
 window.addEventListener("load", checkPushStatus);
-</script>
-<script>
-function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const rawData = atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-
-    return outputArray;
-}
-
-async function updatePushButton() {
-    const btn = document.getElementById("pushBtn");
-    if (!btn) return;
-
-    if (!("Notification" in window)) {
-        btn.className = "btn btn-sm btn-secondary";
-        btn.innerText = "通知非対応";
-        return;
-    }
-
-    if (Notification.permission === "granted") {
-        btn.className = "btn btn-sm btn-primary";
-        btn.innerText = "🔔 通知ON";
-    } else {
-        btn.className = "btn btn-sm btn-outline-primary";
-        btn.innerText = "🔔 通知OFF";
-    }
-}
-
-window.enablePush = async function () {
-    try {
-        if (!("serviceWorker" in navigator)) {
-            alert("この端末は通知に対応していません");
-            return;
-        }
-
-        if (!("PushManager" in window)) {
-            alert("このブラウザは通知に対応していません");
-            return;
-        }
-
-        const permission = await Notification.requestPermission();
-
-        if (permission !== "granted") {
-            alert("通知が許可されませんでした。ブラウザ設定から通知を許可してください。");
-            await updatePushButton();
-            return;
-        }
-
-        const registration = await navigator.serviceWorker.register("/static/service-worker.js");
-
-        const keyRes = await fetch("/vapid_public_key");
-        const keyData = await keyRes.json();
-
-        const oldSub = await registration.pushManager.getSubscription();
-        if (oldSub) {
-            await oldSub.unsubscribe();
-        }
-
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
-        });
-
-        await fetch("/subscribe", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(subscription)
-        });
-
-        alert("スマホ通知をONにしました");
-        await updatePushButton();
-
-    } catch (e) {
-        alert("通知登録エラー：" + e.message);
-        console.error(e);
-    }
-};
-
-window.addEventListener("load", async function () {
-    await updatePushButton();
-
-    if (!("serviceWorker" in navigator)) return;
-    if (!("PushManager" in window)) return;
-    if (!("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-
-    try {
-        const registration = await navigator.serviceWorker.register("/static/service-worker.js");
-
-        let subscription = await registration.pushManager.getSubscription();
-
-        if (!subscription) {
-            const keyRes = await fetch("/vapid_public_key");
-            const keyData = await keyRes.json();
-
-            subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
-            });
-        }
-
-        await fetch("/subscribe", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(subscription)
-        });
-
-        await updatePushButton();
-
-    } catch (e) {
-        console.log("auto subscribe error", e);
-    }
-});
 </script>
 
 
