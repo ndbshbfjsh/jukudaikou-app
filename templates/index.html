@@ -92,6 +92,20 @@
     color: #000;
 }
 </style>
+<form method="GET" action="/" class="mb-3 d-flex gap-2">
+    <input type="hidden" name="year" value="{{ year }}">
+    <input type="hidden" name="month" value="{{ month }}">
+
+    <input type="text" name="keyword" class="form-control"
+           placeholder="先生名・代講先生・メモで検索"
+           value="{{ keyword }}">
+
+    <button type="submit" class="btn btn-primary">検索</button>
+
+    {% if keyword %}
+        <a href="/?year={{ year }}&month={{ month }}" class="btn btn-secondary">解除</a>
+    {% endif %}
+</form>
 
 <div class="calendar-wrap">
 

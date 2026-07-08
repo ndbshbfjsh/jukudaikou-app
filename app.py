@@ -318,11 +318,19 @@ def index():
     last_day = calendar.monthrange(year, month)[1]
     end_date = f"{year:04d}-{month:02d}-{last_day:02d}"
 
-    records = Data.query.filter(
-        Data.date >= start_date,
-        Data.date <= end_date
-    ).all()
+    keyword = request.args.get("keyword", "").strip()
+    query = Data.query.filter(Data.date >= start_date, Data.date <= end_date)
 
+    if keyword:
+    query = query.filter(
+        db.or_(
+            Data.teacher.contains(keyword),
+            Data.sub_teacher.contains(keyword),
+            Data.note.contains(keyword)
+        )
+    )
+
+records = query.all()
     teacher_status_by_date = defaultdict(dict)
 
     for r in records:
@@ -358,6 +366,7 @@ def index():
         cal=cal,
         count_by_date=count_by_date,
         today=today_dt.strftime("%Y-%m-%d")
+        keyword=keyword
     )
 
 
