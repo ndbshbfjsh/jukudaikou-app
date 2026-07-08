@@ -540,10 +540,7 @@ def export():
         download_name="daikou.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-@app.route("/test_push")
-def test_push():
-    send_push_notification("塾代講管理","テスト通知です")
-    return "test push sent"
+
 @app.route("/check_today_pending")
 def check_today_pending():
     notify_today_pending()
