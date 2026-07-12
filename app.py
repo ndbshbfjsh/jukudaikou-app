@@ -278,6 +278,9 @@ def subscribe():
         db.session.add(new_sub)
         db.session.commit()
 
+        print("SUBSCRIBED:", endpoint[:50], flush=True)
+        print("TOTAL SUBSCRIPTIONS:",PushSubscription.query.count(), flush=True)
+
     return jsonify({"status": "ok"})
 @app.route("/unsubscribe", methods=["POST"])
 def unsubscribe():
@@ -567,3 +570,7 @@ if __name__ == "__main__":
 @app.route("/help")
 def help():
     return render_template("help.html")
+@app.route("/subscription_count")
+def subscription_count():
+    count = PushSubscription.query.count()
+    return f"登録端末数: {count}"
