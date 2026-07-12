@@ -284,14 +284,29 @@ def subscribe():
     return jsonify({"status": "ok"})
 @app.route("/unsubscribe", methods=["POST"])
 def unsubscribe():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     endpoint = data.get("endpoint")
+
+    if not endpoint:
+        return jsonify({
+            "status": "error",
+            "message": "endpoint is missing"
+        }), 400
 
     sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
 
     if sub:
         db.session.delete(sub)
         db.session.commit()
+        print("UNSUBSCRIBED:", endpoint[:60], flush=True)
+    else:
+        print("UNSUBSCRIBE TARGET NOT FOUND:", endpoint[:60], flush=True)
+
+    print(
+        "TOTAL SUBSCRIPTIONS AFTER UNSUBSCRIBE:",
+        PushSubscription.query.count(),
+        flush=True
+    )
 
     return jsonify({"status": "ok"})
 
