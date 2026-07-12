@@ -560,13 +560,6 @@ def export():
 def check_today_pending():
     notify_today_pending()
     return "checked today pending"
-@app.route("/clear_subscriptions")
-def clear_subscriptions():
-    PushSubscription.query.delete()
-    db.session.commit()
-    return "subscriptions cleared"
-if __name__ == "__main__":
-    app.run(debug=True)
 @app.route("/help")
 def help():
     return render_template("help.html")
@@ -574,3 +567,6 @@ def help():
 def subscription_count():
     count = PushSubscription.query.count()
     return f"登録端末数: {count}"
+   
+if __name__ == "__main__":
+    app.run(debug=True)
