@@ -19,10 +19,10 @@ app.secret_key = "anything-secret"
 db_url = os.getenv("DATABASE_URL")
 if db_url:
     db_url = db_url.strip()
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///instance/database.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = ( db_url if db_url else "sqlite:///instance/database.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
@@ -133,6 +133,7 @@ def get_period_times(date_str):
         ("2026-08-01", "2026-08-05"),
         ("2026-08-17", "2026-08-21"),
         ("2026-08-23", "2026-08-27"),
+        
     ]
 
     for start, end in summer_ranges:
@@ -282,6 +283,7 @@ def subscribe():
         print("TOTAL SUBSCRIPTIONS:",PushSubscription.query.count(), flush=True)
 
     return jsonify({"status": "ok"})
+
 @app.route("/unsubscribe", methods=["POST"])
 def unsubscribe():
     data = request.get_json(silent=True) or {}
@@ -292,8 +294,6 @@ def unsubscribe():
             "status": "error",
             "message": "endpoint is missing"
         }), 400
-
-    sub = PushSubscription.query.filter_by(endpoint=endpoint).first()
 
     if sub:
         db.session.delete(sub)
