@@ -17,10 +17,27 @@ app = Flask(__name__)
 app.secret_key = "anything-secret"
 
 db_url = os.getenv("DATABASE_URL")
+
 if db_url:
     db_url = db_url.strip()
+
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+
+else:
+    # PCで動かす時だけSQLiteを使用
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///instance/database.db"
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280
+}
+
+db = SQLAlchemy(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = ( db_url if db_url else "sqlite:///instance/database.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
