@@ -8,6 +8,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#0d6efd">
+    <style>
+    .notification-guide {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 99999;display: flex;align-items: center;justify-content: center;padding: 20px;}
+        .notification-guide-box {width: 100%;max-width: 420px;background: white;color: #222;border-radius: 20px;padding: 28px 22px;
+            text-align: center;box-shadow: 0 15px 50px rgba(0,0,0,0.35);}
+            .notification-guide-icon {
+                font-size: 55px;margin-bottom: 10px;}
+                .notification-guide-box h3 {font-weight: bold;margin-bottom: 15px;}
+                .notification-guide-box p {line-height: 1.7;margin-bottom: 20px;}
+                .notification-hide-check {display: block;margin-bottom: 22px;font-size: 15px;}
+                .notification-guide-buttons {display: flex;gap: 10px;}
+                .notification-guide-buttons button {flex: 1;padding: 12px;border-radius: 12px;}
+    </style>
 
     <script>
         const savedTheme = localStorage.getItem("theme");
@@ -17,6 +33,83 @@
         );
     </script>
 </head>
+<!-- iPhone / iPad ホーム画面追加案内 -->
+<div id="iosInstallGuide" class="notification-guide" style="display:none;">
+    <div class="notification-guide-box">
+
+        <div class="notification-guide-icon">📱</div>
+
+        <h3>ホーム画面に追加してください</h3>
+
+        <p>
+            iPhone・iPadで通知を受け取るには、
+            このページをホーム画面に追加してから
+            アプリを開いてください。
+        </p>
+
+        <p>
+            Safariの共有ボタン
+            <strong>□↑</strong>
+            を押して、
+            「ホーム画面に追加」を選択してください。
+        </p>
+
+        <label class="notification-hide-check">
+            <input type="checkbox" id="dontShowIOSInstallGuide">
+            今後この案内を表示しない
+        </label>
+
+        <div class="notification-guide-buttons">
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="closeIOSInstallGuide()">
+                わかりました
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- 通知ON案内 -->
+<div id="notificationGuide" class="notification-guide" style="display:none;">
+    <div class="notification-guide-box">
+
+        <div class="notification-guide-icon">🔔</div>
+
+        <h3>通知をONにしますか？</h3>
+
+        <p>
+            新しい代講の登録や、
+            当日の未定情報を通知でお知らせします。
+        </p>
+
+        <label class="notification-hide-check">
+            <input type="checkbox" id="dontShowNotificationGuide">
+            今後この案内を表示しない
+        </label>
+
+        <div class="notification-guide-buttons">
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="acceptNotificationGuide()">
+                通知を許可する
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeNotificationGuide()">
+                あとで
+            </button>
+
+        </div>
+
+    </div>
+</div>
 
 <body class="p-2">
 
@@ -113,6 +206,161 @@ window.togglePush = async function () {
         alert("通知切替エラー：" + e.message);
     }
 };
+function isIOS() {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function isStandaloneMode() {
+    return window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true;
+}
+
+function saveNotificationGuidePreference() {
+    const checkbox =
+        document.getElementById("dontShowNotificationGuide");
+
+    if (checkbox && checkbox.checked) {
+        localStorage.setItem(
+            "hideNotificationGuide",
+            "true"
+        );
+    }
+}
+
+function closeNotificationGuide() {
+    saveNotificationGuidePreference();
+
+    const guide =
+        document.getElementById("notificationGuide");
+
+    if (guide) {
+        guide.style.display = "none";
+    }
+}
+
+async function acceptNotificationGuide() {
+    saveNotificationGuidePreference();
+
+    const guide =
+        document.getElementById("notificationGuide");
+
+    if (guide) {
+        guide.style.display = "none";
+    }
+
+    await window.togglePush();
+}
+
+function closeIOSInstallGuide() {
+    const checkbox =
+        document.getElementById("dontShowIOSInstallGuide");
+
+    if (checkbox && checkbox.checked) {
+        localStorage.setItem(
+            "hideIOSInstallGuide",
+            "true"
+        );
+    }
+
+    const guide =
+        document.getElementById("iosInstallGuide");
+
+    if (guide) {
+        guide.style.display = "none";
+    }
+}
+window.addEventListener("load", async function () {
+
+    const notificationGuide =
+        document.getElementById("notificationGuide");
+
+    const iosInstallGuide =
+        document.getElementById("iosInstallGuide");
+
+
+    // ----------------------------
+    // iPhone / iPad の場合
+    // ----------------------------
+    if (isIOS()) {
+
+        // Safariブラウザで開いている
+        if (!isStandaloneMode()) {
+
+            // 「今後表示しない」でなければ表示
+            if (
+                localStorage.getItem("hideIOSInstallGuide")
+                !== "true"
+            ) {
+                setTimeout(function () {
+                    if (iosInstallGuide) {
+                        iosInstallGuide.style.display = "flex";
+                    }
+                }, 700);
+            }
+
+            return;
+        }
+
+        // ホーム画面から開いている場合は
+        // この下の通知ON案内へ進む
+    }
+
+
+    // ----------------------------
+    // 通知機能に対応しているか
+    // ----------------------------
+    if (
+        !("Notification" in window) ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window)
+    ) {
+        return;
+    }
+
+
+    // ----------------------------
+    // 「今後表示しない」の場合
+    // ----------------------------
+    if (
+        localStorage.getItem("hideNotificationGuide")
+        === "true"
+    ) {
+        return;
+    }
+
+
+    // ----------------------------
+    // すでに通知ONなら表示しない
+    // ----------------------------
+    try {
+
+        const registration =
+            await navigator.serviceWorker.ready;
+
+        const subscription =
+            await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            return;
+        }
+
+    } catch (e) {
+        console.log("push status check error:", e);
+    }
+
+
+    // ----------------------------
+    // 通知OFFなら案内を表示
+    // ----------------------------
+    setTimeout(function () {
+
+        if (notificationGuide) {
+            notificationGuide.style.display = "flex";
+        }
+
+    }, 700);
+
+});
 
 window.addEventListener("load", checkPushStatus);
 </script>
