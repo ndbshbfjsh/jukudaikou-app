@@ -580,7 +580,9 @@ def export():
         download_name="daikou.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
+@app.route("/keep_alive")
+def keep_alive():
+    return "OK", 200
 @app.route("/check_today_pending")
 def check_today_pending():
     notify_today_pending()
