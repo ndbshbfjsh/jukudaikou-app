@@ -39,14 +39,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 db = SQLAlchemy(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = ( db_url if db_url else "sqlite:///instance/database.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_pre_ping": True,
-    "pool_recycle": 280
-}
 
-db = SQLAlchemy(app)
 
 
 class Data(db.Model):
